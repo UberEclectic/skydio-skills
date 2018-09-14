@@ -46,30 +46,41 @@ class PolygonPath(Skill):
             detail='',
             options=[
                 UiRadioOption(
-                    identifier='normal',
+                    identifier='clockwise',
                     label='Clockwise',
                     detail='',
                 ),
                 UiRadioOption(
-                    identifier='invert',
+                    identifier='counter_clockwise',
                     label='Counter-Clockwise',
                     detail='',
                 ),
             ],
-            selected_option=0,
+            selected_option=1,
         ),
     )
 
     def __init__(self):
         """ Constructor for the Skill. Called whenever the user switches the active skill. """
         super(PolygonPath, self).__init__()
-        self.center = None
-        self.desired_position = None
-        self.index = 0
+        # whether we are executing the polygon motion, or waiting for user control input.
         self.running = False
+
+        # the position of the center of the polygon in the nav frame
+        self.center = None
+
+        # the current vertex we are targeting
+        self.index = 0
+
+        # the 3d position of that vertex
+        self.desired_position = None
+
+        # the system time when we switched to that vertex
+        self.last_change_utime = -1
 
     def button_pressed(self, api, button_id):
         """ Called by the sdk whenever the user presses a button """
+        print("user pressed {}".format(button_id))
         if button_id == 'start':
             self.running = True
         elif button_id == 'stop':
@@ -86,17 +97,28 @@ class PolygonPath(Skill):
         num_sides = int(self.get_value_for_user_setting('num_sides'))
         controls = dict()
         if self.running:
-            controls['show_stop'] = True
-            controls['buttons'] = []
-
             # Show a title based on the current index.
             current = int(self.index + 1)
             controls['title'] = 'Vertex {}/{}'.format(current, num_sides)
 
+            # Show the red STOP button
+            controls['show_stop'] = True
+
+            # Hide the manual controls and buttons
+            controls['height_slider_enabled'] = False
+            controls['buttons'] = []
+
         else:
-            controls['show_stop'] = False
-            controls['buttons'] = [UiButton(identifier='start', label='Start')]
+            # Confirm the number of sides in the polygon with a title
             controls['title'] = '{}-Sided Polygon'.format(num_sides)
+
+            # Enable manual controls and a Start Button
+            controls['height_slider_enabled'] = True
+            controls['buttons'] = [UiButton(identifier='start', label='Start')]
+
+            # Hide the stop button
+            controls['show_stop'] = False
+
         return controls
 
     def update(self, api):
@@ -107,13 +129,16 @@ class PolygonPath(Skill):
             self.center = None
             return
 
+        # Stop tracking any subjects
+        api.subject.request_no_subject(api.utime)
+
         # Disable manual control during autonomous motion.
         api.phone.disable_movement_commands()
 
         # Get latest setting values
         num_sides = float(self.get_value_for_user_setting('num_sides'))
         radius = self.get_value_for_user_setting('radius')
-        direction = -1 if self.get_value_for_user_setting('direction') == 'normal' else 1
+        direction = -1 if self.get_value_for_user_setting('direction') == 'clockwise' else 1
 
         if self.center is None:
             self.center = api.vehicle.get_position()
@@ -123,20 +148,30 @@ class PolygonPath(Skill):
             desired_angle = self.index / num_sides * M_2PI
             self.desired_position = self.center + radius * Vector3(cos(desired_angle), sin(desired_angle), 0)
             print("new desired position {}".format(self.desired_position))
+            self.last_change_utime = api.utime
 
         # Compute the distance between our goal and the vehicle
-        delta = self.desired_position - api.vehicle.get_position()
+        position_delta = self.desired_position - api.vehicle.get_position()
 
-        # Are we close enough?
-        if delta.magnitude() < 0.5:
+        # Compute the time (in seconds) since we started trying to reach this position
+        time_elapsed = (api.utime - self.last_change_utime) / 1e6
+
+        # Advance to the next vertex if we reach the current position or we time out.
+        if position_delta.magnitude() < 0.5 or time_elapsed > 10.0:
             # Clear state here so it gets set again on the next call to update()
             self.desired_position = None
             self.index = (self.index + direction) % num_sides
             self.set_needs_layout()
-            print("close enough, advancing to {}".format(self.index))
+            print("advancing to {}".format(self.index))
+
+            # Schedule a call to Skill.get_onscreen_controls()
+            # This will allow the title to update immediately to match the new vertex.
+            self.set_needs_layout()
 
         else:
             # move to the desired position
             api.movement.set_desired_pos_nav(self.desired_position)
-            # look in the horizontal direction of the desired position
-            api.movement.set_heading(delta.azimuth())
+            # turn in the direction of the desired position
+            api.movement.set_heading(position_delta.azimuth())
+            # look in the vertical direction of the desired position
+            api.movement.set_gimbal_pitch(-position_delta.elevation())
