@@ -1,0 +1,21 @@
+{
+  "polygon_path.PolygonPath": {
+    "arrows_enabled": false,
+    "control_type": "MOVEMENT",
+    "customer": true,
+    "display_name": "Polygon Path",
+    "explanation": "Fly in the shape of a polygon",
+    "has_custom_layout": true,
+    "height_control_enabled": false,
+    "hint": "hint",
+    "joysticks_enabled": false,
+    "short_name": "Polygon",
+    "show_voxels": false,
+    "steering_enabled": false,
+    "subject_focus_control_enabled": false,
+    "subscribe_voxels": false,
+    "tracks_enabled": false,
+    "unlock_group": "",
+    "wand_enabled": false
+  }
+}
