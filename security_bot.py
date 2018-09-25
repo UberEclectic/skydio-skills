@@ -83,7 +83,7 @@ class SecurityBot(Skill):
 
         if self.running:
             # Show a title based on detected objects
-            num_detections = api.subject.get_num_tracks()
+            num_detections = len(api.subject.get_all_tracks())
             closest_object = api.subject.get_closest_track(self.home_point)
             if closest_object:
                 distance = (closest_object.position - self.home_point).magnitude()
