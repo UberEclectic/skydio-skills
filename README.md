@@ -12,7 +12,7 @@ and receive telemetry.
 
 ## Try these skills in the simulator
 1. [Download](https://github.com/Skydio/sample-skills/archive/master.zip) this repo and unzip it.
-1. [Sign up](https://console.skydio.com) to be a Skydio developer.
+1. [Sign up](https://console.skydio.com) to be a Skydio developer. (Note: this is currently invite-only.)
 1. Create a new [skillset](https://console.skydio.com/skillsets/).
 1. Upload the unzipped sample folder into your newly created skillset.
 1. Click `author-staged` mode in the web interface.
