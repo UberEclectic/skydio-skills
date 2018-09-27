@@ -28,5 +28,3 @@ and receive telemetry.
 
  - [Polygon Path](polygon_path.py): Fly a path in the shape of a user-defined polygon.
  - [Security Bot](security_bot.py): Follow anyone that gets within range of a home point, then return.
- - LawnmowerScan: tbd
- - AreaSearch: tbd
