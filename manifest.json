@@ -20,5 +20,16 @@
     "short_name": "SecurityBot",
     "show_voxels": false,
     "subscribe_voxels": false
+  },
+  "tetris.Tetris": {
+    "control_type": "MOVEMENT",
+    "customer": true,
+    "display_name": "Tetris",
+    "explanation": "Plays tetris",
+    "has_custom_layout": true,
+    "hint": "no hints",
+    "short_name": "Tetris",
+    "show_voxels": false,
+    "subscribe_voxels": false
   }
 }
