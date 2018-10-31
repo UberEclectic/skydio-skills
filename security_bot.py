@@ -4,20 +4,17 @@ from __future__ import print_function
 
 # Math helpers
 from math import pi, cos, sin, radians
-from euler import Vector3
-from shared.util.common.math import clamp, mod_2_pi
+import numpy as np
 from shared.util.time_manager.time_manager import DownSampler
 
 # The base class for all Skills
-from vehicle.skills_sdk.skills import Skill
+from vehicle.skills.skills import Skill
 
 # UiElements
-from vehicle.skills_sdk.util.ui import UiButton
-from vehicle.skills_sdk.util.ui import UiRadioGroup
-from vehicle.skills_sdk.util.ui import UiRadioOption
-from vehicle.skills_sdk.util.ui import UiSlider
+from vehicle.skills.util.ui import UiButton
+from vehicle.skills.util.ui import UiSlider
 
-# helper functions for dealing with the Autonomy APIs
+# Helper functions for dealing with the Autonomy APIs
 from .api_helpers import rotation_only
 
 
@@ -78,7 +75,7 @@ class SecurityBot(Skill):
             self.following = False
 
     def get_onscreen_controls(self, api):
-        """ Add buttons and titles to the skydio app based on current skill state. """
+        """ Add buttons and titles to the app based on current skill state. """
         controls = dict()
 
         if self.running:
@@ -86,7 +83,7 @@ class SecurityBot(Skill):
             num_detections = len(api.subject.get_all_tracks())
             closest_object = api.subject.get_closest_track(self.home_point)
             if closest_object:
-                distance = (closest_object.position - self.home_point).magnitude()
+                distance = np.linalg.norm(closest_object.position - self.home_point)
             else:
                 distance = -1
 
@@ -149,7 +146,7 @@ class SecurityBot(Skill):
                 print("following!")
                 self.set_needs_layout()
             api.subject.select_track(api.utime, closest_object.track_id)
-            api.movement.set_desired_pos_nav(closest_object.position + Vector3(0, 0, 3))
+            api.movement.set_desired_pos_nav(closest_object.position + np.array([0, 0, 3.0]))
             follow_speed = self.get_value_for_user_setting('follow_speed')
             api.movement.set_max_speed(follow_speed)
 

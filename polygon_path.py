@@ -1,15 +1,19 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+# Math helpers
 from math import pi, cos, sin
-from euler import Vector3
-from shared.util.common.math import clamp, mod_2_pi
+import numpy as np
+from vehicle.skills.util import core
 
-from vehicle.skills_sdk.skills import Skill
-from vehicle.skills_sdk.util.ui import UiButton
-from vehicle.skills_sdk.util.ui import UiRadioGroup
-from vehicle.skills_sdk.util.ui import UiRadioOption
-from vehicle.skills_sdk.util.ui import UiSlider
+# The base class for all Skills
+from vehicle.skills.skills import Skill
+
+# UiElements
+from vehicle.skills.util.ui import UiButton
+from vehicle.skills.util.ui import UiRadioGroup
+from vehicle.skills.util.ui import UiRadioOption
+from vehicle.skills.util.ui import UiSlider
 
 
 M_2PI = 2 * pi
@@ -146,7 +150,8 @@ class PolygonPath(Skill):
 
         if self.desired_position is None:
             desired_angle = self.index / num_sides * M_2PI
-            self.desired_position = self.center + radius * Vector3(cos(desired_angle), sin(desired_angle), 0)
+            direction = np.array([cos(desired_angle), sin(desired_angle), 0])
+            self.desired_position = self.center + radius * direction
             print("new desired position {}".format(self.desired_position))
             self.last_change_utime = api.utime
 
@@ -172,6 +177,6 @@ class PolygonPath(Skill):
             # move to the desired position
             api.movement.set_desired_pos_nav(self.desired_position)
             # turn in the direction of the desired position
-            api.movement.set_heading(position_delta.azimuth())
+            api.movement.set_heading(core.azimuth(position_delta))
             # look in the vertical direction of the desired position
-            api.movement.set_gimbal_pitch(-position_delta.elevation())
+            api.movement.set_gimbal_pitch(-core.elevation(position_delta))
