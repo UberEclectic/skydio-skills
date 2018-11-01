@@ -6,18 +6,17 @@ import enum
 import json
 import numpy as np
 
-# TODO(matt): remove
-from euler import Vector3
-from shared.util.body_shared.trans import Trans
-
 from shared.util.error_reporter import error_reporter as er
 from shared.util.time_manager import time_manager as tm
 from vehicle.skills.skills import Skill
 from vehicle.skills.util import scanning_patterns
 from vehicle.skills.util.ar import Prism
-from vehicle.skills.util.ui import UiButton, UiSlider
-from vehicle.skills.util.core import msg_to_rot3
 from vehicle.skills.util.motions.motion import Motion
+from vehicle.skills.util.transform import trans_to_msg  # XXX
+from vehicle.skills.util.transform import Transform
+from vehicle.skills.util.ui import UiButton
+from vehicle.skills.util.ui import UiSlider
+
 
 class MissionStatus(enum.Enum):
   # System awaiting mission parameters.
@@ -230,7 +229,7 @@ class RoofInspection(Skill):
             'max_height': self.get_value_for_user_setting('max_height'),
             'speed': self.get_value_for_user_setting('speed'),
             'scan_patterns': ['PERIMETER', 'ROOFTOP'],
-            'home_point_nav': np.array(nav_T_vehicle.position),
+            'home_point_nav': nav_T_vehicle.position,
         }
         request['nav_polygon'] = nav_points
         self.pending_request = request
@@ -400,8 +399,8 @@ class RoofInspection(Skill):
                 # XXX: remove any lcm references
                 if nav_T_center is not None:
                     # adjust the position forward so it appears better in the view.
-                    nav_T_center.position = nav_T_center * Vector3(2, 0, 0)
-                    p.nav_T_center = nav_T_center.get_lcm_msg()
+                    nav_T_center.position = nav_T_center * np.array([2.0, 0, 0])
+                    p.nav_T_center = trans_to_msg(nav_T_center)
                 p.size.data = tuple((0.1, 1.0, 1.0))
                 api.scene.add_prism(p)
 
@@ -492,21 +491,19 @@ class RoofInspection(Skill):
         nav_poses += lawnmower
 
         # Go back to the home point when done.
-        final_waypoint = Trans.identity()
-        final_waypoint.position = Vector3(*home_point_nav)
-        nav_poses += [final_waypoint]
+        nav_poses += [Transform(position=home_point_nav)]
 
         # Record the lookat waypoints in global, so they are also robust to VIO drift.
         global_waypoints = [
             api.waypoints.save_nav_location(nav_T_vehicle * np.array([lookat_range, 0, 0]),
-                                            orientation=msg_to_rot3(nav_T_vehicle.orientation.get_lcm_msg()),  # XXX remove
+                                            orientation=nav_T_vehicle.rotation,
                                             waypoint_id=ind)
             for ind, nav_T_vehicle in enumerate(nav_poses)
         ]
 
         # Record the waypoints as gps coordinates, since these are visualized on a map
         # Orientation is lost, but it is later recovered from the associated waypoint
-        waypoints = [list(api.waypoints.nav_to_gps(np.array(nav_T_vehicle.position)))
+        waypoints = [list(api.waypoints.nav_to_gps(nav_T_vehicle.position))
                      for nav_T_vehicle in nav_poses]
 
         # Update state machine and the user-facing status

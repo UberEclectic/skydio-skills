@@ -1,9 +1,8 @@
 import enum
 import math
+import numpy as np
 
-from euler import Quaternion, Vector3
 from lcmtypes.ptree import subject_focus_state_enum_p  # XXX
-from shared.util.body_shared.trans import Trans
 from shared.util.error_reporter import error_reporter as er
 from shared.util.time_manager import time_manager as tm
 from vehicle.skills.skills import Skill
@@ -11,6 +10,8 @@ from vehicle.skills.util import core
 from vehicle.skills.util.motions import CableMotion
 from vehicle.skills.util.motions import OrbitMotion
 from vehicle.skills.util.motions import LookatMotion
+from vehicle.skills.util.transform import Rot3
+from vehicle.skills.util.transform import Transform
 from vehicle.skills.util.ui import UiSlider
 from vehicle.skills.util.ui import UiButton
 
@@ -94,7 +95,7 @@ class PropertyTour(Skill):
         self.window_size = (0, 0)
 
         # AR cache
-        self.ar_frames = []  # list of Trans for each cube in the frame(s)
+        self.ar_frames = []  # list of Transforms for each cube in the frame(s)
         self._ar_needs_update = True
 
         self.params = core.AttrDict()
@@ -132,8 +133,10 @@ class PropertyTour(Skill):
             nav_T_cam = api.vehicle.get_camera_trans()
 
             roll, pitch, yaw = nav_T_cam.get_euler_angles()
-            nav_T_cam_flat = nav_T_cam.copy()
-            nav_T_cam_flat.orientation = Quaternion.from_rpy(0, 0, yaw)
+            nav_T_cam_flat = Transform(
+                rotation=Rot3.Ypr(yaw, 0, 0),
+                position=nav_T_cam.position,
+            )
 
             width = self.get_value_for_user_setting('width')
             depth = self.get_value_for_user_setting('depth')
@@ -144,34 +147,46 @@ class PropertyTour(Skill):
             nav_T_start = nav_T_cam.copy()
 
             # Fly backward
-            nav_T_back = nav_T_cam_flat.copy()
-            nav_T_back.position = nav_T_cam_flat * Vector3(-radius/2, 0, 0)
+            nav_T_back = Tranform(
+                rotation=nav_T_cam_flat.rotation,
+                position=nav_T_cam_flat * np.array([-radius/2, 0, 0]),
+            )
 
             # Fly Up
-            nav_T_up = nav_T_cam_flat.copy()
-            nav_T_up.position = nav_T_cam_flat * Vector3(-radius, 0, height)
-            nav_T_up.orientation = Quaternion.from_rpy(0, math.radians(30), yaw)
+            nav_T_up = Transform(
+                rotation=Rot3.Ypr(yaw, math.radians(30), 0),
+                position=nav_T_cam_flat * np.array([-radius, 0, height])
+            )
 
             # Fly over the house
-            nav_T_over = nav_T_cam_flat.copy()
-            nav_T_over.position = nav_T_over * Vector3(depth, 0, height / 2)
+            nav_T_over = Transform(
+                rotation=nav_T_cam_flat.rotation,
+                position=nav_T_cam_flat * np.array([depth, 0, height / 2]),
+            )
 
             # Crane down
-            nav_T_down = nav_T_cam_flat.copy()
-            nav_T_down.position = nav_T_down * Vector3(-radius/4, 0, height)
-            nav_T_down.orientation = Quaternion.from_rpy(0, math.radians(88), yaw)
+            nav_T_down = Transform(
+                rotation=Rot3.Ypr(yaw, math.radians(88), 0),
+                position=nav_T_cam_flat * np.array([-radius/4, 0, height]),
+            )
 
             # Go left
-            nav_T_left = nav_T_cam_flat.copy()
-            nav_T_left.position = nav_T_left * Vector3(-5, width/2, 0)
+            nav_T_left = Transform(
+                rotation=nav_T_cam_flat.rotation,
+                position=nav_T_cam_flat * np.array([-5, width/2, 0]),
+            )
 
             # Go Right
-            nav_T_right = nav_T_cam_flat.copy()
-            nav_T_right.position = nav_T_right * Vector3(-5, -width/2, 0)
+            nav_T_right = Transform(
+                rotation=nav_T_cam_flat.rotation,
+                position=nav_T_cam_flat * np.array([-5, -width/2, 0]),
+            )
 
             # The center of the house
-            nav_T_lookat = nav_T_cam_flat.copy()
-            nav_T_lookat.position = nav_T_cam_flat * Vector3(depth / 2, 0, 0)
+            nav_T_lookat = Transform
+                rotation=nav_T_cam_flat.rotation,
+                position=nav_T_cam_flat * np.array([depth / 2, 0, 0]),
+            )
 
             self.motions = [
                 # Cable backward as far as possible
@@ -179,8 +194,8 @@ class PropertyTour(Skill):
 
                 # Move while looking at the house
                 LookatMotion(
-                    start_point=nav_T_up * Vector3(0, width, 0),
-                    end_point=nav_T_up * Vector3(0, -width, 0),
+                    start_point=nav_T_up * np.array([0, width, 0]),
+                    end_point=nav_T_up * np.array([0, -width, 0]),
                     lookat_point=nav_T_lookat.position,
                     params=self.params,
                 ),
