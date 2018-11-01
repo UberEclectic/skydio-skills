@@ -506,7 +506,7 @@ class RoofInspection(Skill):
 
         # Record the waypoints as gps coordinates, since these are visualized on a map
         # Orientation is lost, but it is later recovered from the associated waypoint
-        waypoints = [list(api.waypoints.nav_to_gps(nav_T_vehicle.position))
+        waypoints = [list(api.waypoints.nav_to_gps(np.array(nav_T_vehicle.position)))
                      for nav_T_vehicle in nav_poses]
 
         # Update state machine and the user-facing status
@@ -606,7 +606,7 @@ class RoofInspection(Skill):
 
         time_elapsed = tm.utime_to_seconds(api.utime - self.waypoint_start_utime)
 
-        is_stuck = bool(np.linalg.norm(api.vehicle.get_velocity()) < 0.2)
+        is_stuck = bool(api.vehicle.get_speed() < 0.2)
         is_too_slow = is_stuck and time_elapsed > 3.0
         done = Motion.move_to_waypoint(api, waypoint_id, desired_speed=speed)
 
