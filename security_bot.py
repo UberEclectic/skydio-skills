@@ -14,9 +14,6 @@ from vehicle.skills.skills import Skill
 from vehicle.skills.util.ui import UiButton
 from vehicle.skills.util.ui import UiSlider
 
-# Helper functions for dealing with the Autonomy APIs
-from .api_helpers import rotation_only
-
 
 class SecurityBot(Skill):
     """
@@ -130,7 +127,7 @@ class SecurityBot(Skill):
         api.phone.disable_movement_commands()
 
         # Tripod style controls
-        rotation_only(api)
+        api.focus.rotation_only()
 
         if self.home_point is None:
             self.home_point = api.vehicle.get_position()

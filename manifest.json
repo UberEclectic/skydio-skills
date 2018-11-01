@@ -4,21 +4,31 @@
     "customer": true,
     "display_name": "Polygon Path",
     "explanation": "Fly in the shape of a polygon defined by adjustable settings:\n\nNumber of sides\nRadius\nDirection",
-    "has_custom_layout": true,
     "hint": "Fly in the shape of a polygon",
-    "short_name": "Polygon",
-    "show_voxels": false,
-    "subscribe_voxels": false
+    "short_name": "Polygon"
+  },
+  "property_tour.PropertyTour": {
+    "customer": true,
+    "control_type": "MOVEMENT",
+    "display_name": "Property Tour",
+    "explanation": "Create a tour of your house, automatically",
+    "hint": "Tour your house.",
+    "short_name": "Tour"
+  },
+  "roof_inspection.RoofInspection": {
+    "customer": true,
+    "control_type": "MOVEMENT",
+    "display_name": "Roof Inspection",
+    "explanation": "Scan your roof",
+    "hint": "Scan your roof",
+    "short_name": "Inspection"
   },
   "security_bot.SecurityBot": {
     "control_type": "MOVEMENT",
     "customer": true,
     "display_name": "Security Bot",
     "explanation": "",
-    "has_custom_layout": true,
     "hint": "Detect and follow people around a defined region",
-    "short_name": "SecurityBot",
-    "show_voxels": false,
-    "subscribe_voxels": false
+    "short_name": "SecurityBot"
   }
 }

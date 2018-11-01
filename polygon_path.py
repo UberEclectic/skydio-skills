@@ -134,7 +134,7 @@ class PolygonPath(Skill):
             return
 
         # Stop tracking any subjects
-        api.subject.request_no_subject(api.utime)
+        api.subject.cancel_subject_tracking(api.utime)
 
         # Disable manual control during autonomous motion.
         api.phone.disable_movement_commands()
@@ -162,12 +162,11 @@ class PolygonPath(Skill):
         time_elapsed = (api.utime - self.last_change_utime) / 1e6
 
         # Advance to the next vertex if we reach the current position or we time out.
-        if position_delta.magnitude() < 0.5 or time_elapsed > 10.0:
+        if np.linalg.norm(position_delta) < 0.5 or time_elapsed > 10.0:
             # Clear state here so it gets set again on the next call to update()
             self.desired_position = None
             self.index = (self.index + direction) % num_sides
             self.set_needs_layout()
-            print("advancing to {}".format(self.index))
 
             # Schedule a call to Skill.get_onscreen_controls()
             # This will allow the title to update immediately to match the new vertex.
