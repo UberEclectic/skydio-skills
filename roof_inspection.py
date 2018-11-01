@@ -16,6 +16,7 @@ from vehicle.skills.skills import Skill
 from vehicle.skills.util import scanning_patterns
 from vehicle.skills.util.ar import Prism
 from vehicle.skills.util.ui import UiButton, UiSlider
+from vehicle.skills.util.core import msg_to_rot3
 from vehicle.skills.util.motions.motion import Motion
 
 class MissionStatus(enum.Enum):
@@ -229,7 +230,7 @@ class RoofInspection(Skill):
             'max_height': self.get_value_for_user_setting('max_height'),
             'speed': self.get_value_for_user_setting('speed'),
             'scan_patterns': ['PERIMETER', 'ROOFTOP'],
-            'home_point_nav': nav_T_vehicle.position.copy(),
+            'home_point_nav': np.array(nav_T_vehicle.position),
         }
         request['nav_polygon'] = nav_points
         self.pending_request = request
@@ -498,7 +499,7 @@ class RoofInspection(Skill):
         # Record the lookat waypoints in global, so they are also robust to VIO drift.
         global_waypoints = [
             api.waypoints.save_nav_location(nav_T_vehicle * np.array([lookat_range, 0, 0]),
-                                            orientation=nav_T_vehicle.orientation,
+                                            orientation=msg_to_rot3(nav_T_vehicle.orientation.get_lcm_msg()),  # XXX remove
                                             waypoint_id=ind)
             for ind, nav_T_vehicle in enumerate(nav_poses)
         ]
