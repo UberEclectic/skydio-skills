@@ -10,13 +10,11 @@ from euler import Quaternion, Vector2, Vector3
 from shared.util.body_shared.trans import Trans
 from shared.util.error_reporter import error_reporter as er
 from shared.util.time_manager import time_manager as tm
-from vehicle.skills_sdk.skills import Skill
-from vehicle.skills_sdk.util import scanning_patterns
-from vehicle.skills_sdk.util.ar import Prism
-from vehicle.skills_sdk.util.ui import UiButton, UiSlider
-
-from . import api_helpers
-
+from vehicle.skills.skills import Skill
+from vehicle.skills.util import scanning_patterns
+from vehicle.skills.util.ar import Prism
+from vehicle.skills.util.ui import UiButton, UiSlider
+from vehicle.skills.util.motions.motion import Motion
 
 class MissionStatus(enum.Enum):
   # System awaiting mission parameters.
@@ -605,7 +603,7 @@ class RoofInspection(Skill):
 
         is_stuck = bool(api.vehicle.get_velocity().magnitude() < 0.2)
         is_too_slow = is_stuck and time_elapsed > 3.0
-        done = api_helpers.move_to_waypoint(api, waypoint_id, desired_speed=speed)
+        done = Motion.move_to_waypoint(api, waypoint_id, desired_speed=speed)
 
         max_time = 20.0
         if done:
