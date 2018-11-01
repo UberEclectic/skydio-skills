@@ -103,7 +103,7 @@ class PropertyTour(Skill):
         self.params.max_turn_rate = 20  # [rad/update]
         self.params.distance_margin = 0.5  # [m]
         self.params.angle_margin = math.radians(0.75)  # [rad]
-        self.params.giveup_time = tm.seconds_to_utime(3)  # [s]
+        self.params.giveup_utime = tm.seconds_to_utime(3)  # [s]
         self.params.giveup_speed = 0.1  # [m/s]
 
         self.motions = []
