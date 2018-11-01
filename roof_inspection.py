@@ -4,10 +4,12 @@ Roof Scan
 from __future__ import absolute_import
 import enum
 import json
+import numpy as np
 
-from euler import Quaternion, Vector2, Vector3
-
+# TODO(matt): remove
+from euler import Vector3
 from shared.util.body_shared.trans import Trans
+
 from shared.util.error_reporter import error_reporter as er
 from shared.util.time_manager import time_manager as tm
 from vehicle.skills.skills import Skill
@@ -217,10 +219,10 @@ class RoofInspection(Skill):
         left = width / 2.0
         right = width / 2.0
         nav_points = [
-            nav_T_vehicle * Vector3(-backward, left, 0),
-            nav_T_vehicle * Vector3(forward, left, 0),
-            nav_T_vehicle * Vector3(forward, -right, 0),
-            nav_T_vehicle * Vector3(-backward, -right, 0),
+            nav_T_vehicle * np.array([-backward, left, 0]),
+            nav_T_vehicle * np.array([forward, left, 0]),
+            nav_T_vehicle * np.array([forward, -right, 0]),
+            nav_T_vehicle * np.array([-backward, -right, 0]),
         ]
         request = {
             'min_height': self.get_value_for_user_setting('min_height'),
@@ -244,7 +246,7 @@ class RoofInspection(Skill):
 
         gps_polygon = []
         for x, y in request['points']:
-            point = Vector2(float(x), float(y))
+            point = np.array([float(x), float(y)])
             gps_polygon.append(point)
 
         defaults = {
@@ -422,7 +424,7 @@ class RoofInspection(Skill):
             if lat is not None and lon is not None:
                 er.REPORT_STATUS("using home point {} {}", lat, lon)
                 home_point_nav = api.waypoints.gps_to_nav(float(lat), float(lon))
-                home_point_nav.z = min_height
+                home_point_nav[2] = min_height
             else:
                 er.REPORT_STATUS("using vehicle position, no home point set")
                 home_point_nav = api.vehicle.get_position()
@@ -438,7 +440,7 @@ class RoofInspection(Skill):
         # Elevation will be incorrect - correct to current vehicle z
         for ind in range(len(nav_points)):
             if nav_points[ind] is not None:
-                nav_points[ind].z = min_height
+                nav_points[ind][2] = min_height
 
         # The waypoint trans are computed in nav but we want record them in global.
         # This allows them to stay consistent as VIO drifts.
@@ -489,11 +491,13 @@ class RoofInspection(Skill):
         nav_poses += lawnmower
 
         # Go back to the home point when done.
-        nav_poses += [Trans(orientation=Quaternion.new_identity(), position=home_point_nav)]
+        final_waypoint = Trans.identity()
+        final_waypoint.position = Vector3(*home_point_nav)
+        nav_poses += [final_waypoint]
 
         # Record the lookat waypoints in global, so they are also robust to VIO drift.
         global_waypoints = [
-            api.waypoints.save_nav_location(nav_T_vehicle * Vector3(lookat_range, 0, 0),
+            api.waypoints.save_nav_location(nav_T_vehicle * np.array([lookat_range, 0, 0]),
                                             orientation=nav_T_vehicle.orientation,
                                             waypoint_id=ind)
             for ind, nav_T_vehicle in enumerate(nav_poses)
@@ -537,7 +541,7 @@ class RoofInspection(Skill):
             self.status_code = MissionStatus.CALIBRATING
             if not self.paused:
                 api.phone.disable_movement_commands()
-                api.movement.set_desired_vel_body(Vector3(2, 0, 2))
+                api.movement.set_desired_vel_body(np.array([2.0, 0.0, 2.0]))
             else:
                 api.phone.enable_movement_commands()
 
@@ -592,7 +596,7 @@ class RoofInspection(Skill):
 
         goal_position = nav_T_waypoint.position.copy()
         nav_t_vehicle = api.vehicle.get_position()
-        distance = (nav_t_vehicle - goal_position).magnitude()
+        distance = np.linalg.norm(nav_t_vehicle - goal_position)
         speed = self.speed
 
         if distance > 15.0:
@@ -601,7 +605,7 @@ class RoofInspection(Skill):
 
         time_elapsed = tm.utime_to_seconds(api.utime - self.waypoint_start_utime)
 
-        is_stuck = bool(api.vehicle.get_velocity().magnitude() < 0.2)
+        is_stuck = bool(np.linalg.norm(api.vehicle.get_velocity()) < 0.2)
         is_too_slow = is_stuck and time_elapsed > 3.0
         done = Motion.move_to_waypoint(api, waypoint_id, desired_speed=speed)
 
