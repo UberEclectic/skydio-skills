@@ -147,7 +147,7 @@ class PropertyTour(Skill):
             nav_T_start = nav_T_cam.copy()
 
             # Fly backward
-            nav_T_back = Tranform(
+            nav_T_back = Transform(
                 rotation=nav_T_cam_flat.rotation,
                 position=nav_T_cam_flat * np.array([-radius/2, 0, 0]),
             )
@@ -183,7 +183,7 @@ class PropertyTour(Skill):
             )
 
             # The center of the house
-            nav_T_lookat = Transform
+            nav_T_lookat = Transform(
                 rotation=nav_T_cam_flat.rotation,
                 position=nav_T_cam_flat * np.array([depth / 2, 0, 0]),
             )
