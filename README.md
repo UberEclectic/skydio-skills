@@ -30,3 +30,4 @@ and receive telemetry.
  - [Property Tour](property_tour.py): Perform a series of cinematic motions to record a real estate video.
  - [Roof Inspection](roof_inspection.py): Fly a configurable scanning pattern over the roof of a house.
  - [Security Bot](security_bot.py): Follow anyone that gets within range of a home point, then return.
+ - [Com Link](com_link.py): Communicate with a Skill using HTTP. Client code is in [skill_client.py](skill_client.py).

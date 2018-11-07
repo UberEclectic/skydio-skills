@@ -228,12 +228,6 @@ class PropertyTour(Skill):
             return None
         return self.motions[self.motion_index]
 
-    # XXX: I think this can be deleted
-    def update_ui(self, api):
-        if self.allow_manual_control():
-            er.REPORT_QUIET("allowing update_ui")
-            super(PropertyTour, self).update_ui(api)
-
     def update(self, api):
         # Stop tracking
         api.subject.cancel_subject_tracking(api.utime)

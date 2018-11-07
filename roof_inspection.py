@@ -1,5 +1,5 @@
 """
-Roof Scan
+Roof Inspection
 """
 from __future__ import absolute_import
 import enum
@@ -12,7 +12,7 @@ from vehicle.skills.skills import Skill
 from vehicle.skills.util import scanning_patterns
 from vehicle.skills.util.ar import Prism
 from vehicle.skills.util.motions.motion import Motion
-from vehicle.skills.util.transform import Transform, msg_from_trans
+from vehicle.skills.util.transform import Transform
 from vehicle.skills.util.ui import UiButton
 from vehicle.skills.util.ui import UiSlider
 
@@ -392,15 +392,13 @@ class RoofInspection(Skill):
                     # Reached the max number of waypoints to send at once.
                     break
                 count -= 1
-                p = Prism()
-                nav_T_center = api.waypoints.get_waypoint_in_nav(waypoint_id)
+                waypoint = api.waypoints.get_waypoint_in_nav(waypoint_id)
 
-                # XXX: remove any lcm references
-                if nav_T_center is not None:
-                    p.nav_T_center = msg_from_trans(Transform(nav_T_center.rotation(),
-                                                              nav_T_center * np.array([2.0, 0, 0])))
-                p.size.data = tuple((0.1, 1.0, 1.0))
-                api.scene.add_prism(p)
+                if waypoint is not None:
+                    nav_T_center = Transform(waypoint.rotation(),
+                                             waypoint * np.array([2.0, 0, 0]))
+                    p = Prism(nav_T_center, size=np.array([0.1, 1.0, 1.0]))
+                    api.scene.add_prism(p)
 
     def create_mission(self, api, gps_polygon=None, nav_polygon=None,
                        home_point=(None, None),

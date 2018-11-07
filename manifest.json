@@ -1,4 +1,12 @@
 {
+  "com_link.ComLink": {
+    "control_type": "MOVEMENT",
+    "customer": true,
+    "display_name": "ComLink",
+    "explanation": "",
+    "hint": "Send messages over HTTP",
+    "short_name": "ComLink"
+  },
   "polygon_path.PolygonPath": {
     "control_type": "MOVEMENT",
     "customer": true,
