@@ -12,30 +12,29 @@ from vehicle.skills.skills import Skill
 from vehicle.skills.util import scanning_patterns
 from vehicle.skills.util.ar import Prism
 from vehicle.skills.util.motions.motion import Motion
-from vehicle.skills.util.transform import trans_to_msg  # XXX
-from vehicle.skills.util.transform import Transform
+from vehicle.skills.util.transform import Transform, msg_from_trans
 from vehicle.skills.util.ui import UiButton
 from vehicle.skills.util.ui import UiSlider
 
 
 class MissionStatus(enum.Enum):
-  # System awaiting mission parameters.
-  CONFIG_REQUIRED = 0
+    # System awaiting mission parameters.
+    CONFIG_REQUIRED = 0
 
-  # Auto-init the gps
-  CALIBRATING = 1
+    # Auto-init the gps
+    CALIBRATING = 1
 
-  # The mission is running.
-  IN_PROGRESS = 2
+    # The mission is running.
+    IN_PROGRESS = 2
 
-  # The mission finished successfully.
-  COMPLETED = 3
+    # The mission finished successfully.
+    COMPLETED = 3
 
-  # User aborted the mission.
-  ABORTED = 4
+    # User aborted the mission.
+    ABORTED = 4
 
-  # There was a code problem.
-  ERROR = 5
+    # There was a code problem.
+    ERROR = 5
 
 
 class RoofInspection(Skill):
@@ -138,7 +137,7 @@ class RoofInspection(Skill):
         response = None
 
         if rpc_type == 'SCAN_REQUEST':
-            self.process_scan_request(api, request)
+            self.process_scan_request(request)
             response = dict(paused=self.paused)
 
         elif rpc_type == 'SKIP_WAYPOINT':
@@ -229,12 +228,12 @@ class RoofInspection(Skill):
             'max_height': self.get_value_for_user_setting('max_height'),
             'speed': self.get_value_for_user_setting('speed'),
             'scan_patterns': ['PERIMETER', 'ROOFTOP'],
-            'home_point_nav': nav_T_vehicle.position,
+            'home_point_nav': nav_T_vehicle.translation(),
         }
         request['nav_polygon'] = nav_points
         self.pending_request = request
 
-    def process_scan_request(self, api, request):
+    def process_scan_request(self, request):
         """
         Create the scan from a json request.
         """
@@ -301,7 +300,8 @@ class RoofInspection(Skill):
 
         elif self.status_code == MissionStatus.IN_PROGRESS:
             title = 'Inspection in Progress'
-            detail = "Waypoint {}/{}".format(self.current_waypoint_index, len(self.global_waypoints))
+            detail = "Waypoint {}/{}".format(self.current_waypoint_index,
+                                             len(self.global_waypoints))
             skip_btn = UiButton('skip', 'Skip')
             buttons.append(skip_btn)
             promoted_control_id = 'skip'
@@ -356,7 +356,7 @@ class RoofInspection(Skill):
         if self.mission_in_progress(api):
             try:
                 self.advance_mission(api)
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 er.REPORT_EXCEPTION_NOW("scan error")
                 self.status_code = MissionStatus.ERROR
 
@@ -395,12 +395,10 @@ class RoofInspection(Skill):
                 p = Prism()
                 nav_T_center = api.waypoints.get_waypoint_in_nav(waypoint_id)
 
-
                 # XXX: remove any lcm references
                 if nav_T_center is not None:
-                    # adjust the position forward so it appears better in the view.
-                    nav_T_center.position = nav_T_center * np.array([2.0, 0, 0])
-                    p.nav_T_center = trans_to_msg(nav_T_center)
+                    p.nav_T_center = msg_from_trans(Transform(nav_T_center.rotation(),
+                                                              nav_T_center * np.array([2.0, 0, 0])))
                 p.size.data = tuple((0.1, 1.0, 1.0))
                 api.scene.add_prism(p)
 
@@ -414,6 +412,7 @@ class RoofInspection(Skill):
         """
         Build a series of global waypoints from the given nav or gps polygon and settings.
         """
+        # pylint: disable=too-many-locals
         assert api.waypoints.ready_for_waypoints(), 'waypoint api not ready'
 
         self.current_waypoint_index = None
@@ -491,19 +490,19 @@ class RoofInspection(Skill):
         nav_poses += lawnmower
 
         # Go back to the home point when done.
-        nav_poses += [Transform(position=home_point_nav)]
+        nav_poses += [Transform(translation=home_point_nav)]
 
         # Record the lookat waypoints in global, so they are also robust to VIO drift.
         global_waypoints = [
             api.waypoints.save_nav_location(nav_T_vehicle * np.array([lookat_range, 0, 0]),
-                                            orientation=nav_T_vehicle.rotation,
+                                            orientation=nav_T_vehicle.rotation(),
                                             waypoint_id=ind)
             for ind, nav_T_vehicle in enumerate(nav_poses)
         ]
 
         # Record the waypoints as gps coordinates, since these are visualized on a map
         # Orientation is lost, but it is later recovered from the associated waypoint
-        waypoints = [list(api.waypoints.nav_to_gps(nav_T_vehicle.position))
+        waypoints = [list(api.waypoints.nav_to_gps(nav_T_vehicle.translation()))
                      for nav_T_vehicle in nav_poses]
 
         # Update state machine and the user-facing status
@@ -592,7 +591,7 @@ class RoofInspection(Skill):
             er.REPORT_QUIET("paused")
             return
 
-        goal_position = nav_T_waypoint.position.copy()
+        goal_position = nav_T_waypoint.translation()
         nav_t_vehicle = api.vehicle.get_position()
         distance = np.linalg.norm(nav_t_vehicle - goal_position)
         speed = self.speed

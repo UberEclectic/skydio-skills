@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 # Math helpers
-from math import pi, cos, sin, radians
+from math import radians
 import numpy as np
 from shared.util.time_manager.time_manager import DownSampler
 
@@ -86,7 +86,8 @@ class SecurityBot(Skill):
 
             if not self.following:
                 controls['title'] = 'Searching'
-                controls['detail'] = 'Detections: {}\nClosest: {:.1f}m'.format(num_detections, distance)
+                controls['detail'] = \
+                    'Detections: {}\nClosest: {:.1f}m'.format(num_detections, distance)
             else:
                 controls['title'] = 'Following'
                 controls['detail'] = ''
@@ -116,7 +117,6 @@ class SecurityBot(Skill):
             api.subject.request_no_subject(api.utime)
             # Re-enable manual control
             api.phone.enable_movement_commands()
-            self.center = None
             return
 
         # Update the display periodically so we can see stats change.
@@ -127,7 +127,7 @@ class SecurityBot(Skill):
         api.phone.disable_movement_commands()
 
         # Tripod style controls
-        api.focus.rotation_only()
+        api.focus.apply_tripod_presets()
 
         if self.home_point is None:
             self.home_point = api.vehicle.get_position()

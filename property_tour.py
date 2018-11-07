@@ -2,18 +2,17 @@ import enum
 import math
 import numpy as np
 
-from lcmtypes.ptree import subject_focus_state_enum_p  # XXX
 from shared.util.error_reporter import error_reporter as er
 from shared.util.time_manager import time_manager as tm
 from vehicle.skills.skills import Skill
 from vehicle.skills.util import core
 from vehicle.skills.util.motions import CableMotion
-from vehicle.skills.util.motions import OrbitMotion
 from vehicle.skills.util.motions import LookatMotion
+from vehicle.skills.util.motions import OrbitMotion
 from vehicle.skills.util.transform import Rot3
 from vehicle.skills.util.transform import Transform
-from vehicle.skills.util.ui import UiSlider
 from vehicle.skills.util.ui import UiButton
+from vehicle.skills.util.ui import UiSlider
 
 
 class TourState(enum.Enum):
@@ -36,7 +35,7 @@ class PropertyTour(Skill):
     USER_SETTINGS = (
         UiSlider(
             identifier='speed',
-            label='Speed',  # NOTE(matt): this text will update with the movement style.
+            label='Speed',
             detail="Maximum R1 speed during motion.",
             units='m/s',
             min_value=0.1,
@@ -85,18 +84,7 @@ class PropertyTour(Skill):
         super(PropertyTour, self).__init__()
         self.state = TourState.SETUP
         self.has_subject = False
-
-        self.start_point = None  # A point
-        self.end_point = None  # B point
-        self._goal_point_name = None
         self.publish_downsampler = tm.DownSampler(0.5)
-        self._first_launch = True
-
-        self.window_size = (0, 0)
-
-        # AR cache
-        self.ar_frames = []  # list of Transforms for each cube in the frame(s)
-        self._ar_needs_update = True
 
         self.params = core.AttrDict()
         self.params.speed = 4.0
@@ -110,20 +98,11 @@ class PropertyTour(Skill):
         self.motions = []
         self.motion_index = None
 
+        # AR cache
+        self.ar_frames = []  # list of Transforms for each cube in the frame(s)
+
     def allow_manual_control(self):
         return self.state in (TourState.STOP, TourState.SETUP)
-
-    @property
-    def goal_point_name(self):
-        return self._goal_point_name
-
-    @property
-    def goal_point_trans(self):
-        if self.goal_point_name == 'A':
-            return self.start_point
-        elif self.goal_point_name == 'B':
-            return self.end_point
-        return None
 
     def button_pressed(self, api, button_id_pressed):
         if button_id_pressed == 'go':
@@ -132,10 +111,10 @@ class PropertyTour(Skill):
             # Remember the current location.
             nav_T_cam = api.vehicle.get_camera_trans()
 
-            roll, pitch, yaw = nav_T_cam.get_euler_angles()
+            yaw = nav_T_cam.get_euler_angles()[2]
             nav_T_cam_flat = Transform(
                 rotation=Rot3.Ypr(yaw, 0, 0),
-                position=nav_T_cam.position,
+                translation=nav_T_cam.translation(),
             )
 
             width = self.get_value_for_user_setting('width')
@@ -148,55 +127,55 @@ class PropertyTour(Skill):
 
             # Fly backward
             nav_T_back = Transform(
-                rotation=nav_T_cam_flat.rotation,
-                position=nav_T_cam_flat * np.array([-radius/2, 0, 0]),
+                rotation=nav_T_cam_flat.rotation(),
+                translation=nav_T_cam_flat * np.array([-radius/2, 0, 0]),
             )
 
             # Fly Up
-            nav_T_up = Transform(
+            nav_T_top = Transform(
                 rotation=Rot3.Ypr(yaw, math.radians(30), 0),
-                position=nav_T_cam_flat * np.array([-radius, 0, height])
+                translation=nav_T_cam_flat * np.array([-radius, 0, height])
             )
 
             # Fly over the house
             nav_T_over = Transform(
-                rotation=nav_T_cam_flat.rotation,
-                position=nav_T_cam_flat * np.array([depth, 0, height / 2]),
+                rotation=nav_T_cam_flat.rotation(),
+                translation=nav_T_cam_flat * np.array([depth, 0, height / 2]),
             )
 
             # Crane down
             nav_T_down = Transform(
                 rotation=Rot3.Ypr(yaw, math.radians(88), 0),
-                position=nav_T_cam_flat * np.array([-radius/4, 0, height]),
+                translation=nav_T_cam_flat * np.array([-radius/4, 0, height]),
             )
 
             # Go left
             nav_T_left = Transform(
-                rotation=nav_T_cam_flat.rotation,
-                position=nav_T_cam_flat * np.array([-5, width/2, 0]),
+                rotation=nav_T_cam_flat.rotation(),
+                translation=nav_T_cam_flat * np.array([-5, width/2, 0]),
             )
 
             # Go Right
             nav_T_right = Transform(
-                rotation=nav_T_cam_flat.rotation,
-                position=nav_T_cam_flat * np.array([-5, -width/2, 0]),
+                rotation=nav_T_cam_flat.rotation(),
+                translation=nav_T_cam_flat * np.array([-5, -width/2, 0]),
             )
 
             # The center of the house
             nav_T_lookat = Transform(
-                rotation=nav_T_cam_flat.rotation,
-                position=nav_T_cam_flat * np.array([depth / 2, 0, 0]),
+                rotation=nav_T_cam_flat.rotation(),
+                translation=nav_T_cam_flat * np.array([depth / 2, 0, 0]),
             )
 
             self.motions = [
                 # Cable backward as far as possible
-                CableMotion(nav_T_start, nav_T_up, self.params),
+                CableMotion(nav_T_start, nav_T_top, self.params),
 
                 # Move while looking at the house
                 LookatMotion(
-                    start_point=nav_T_up * np.array([0, width, 0]),
-                    end_point=nav_T_up * np.array([0, -width, 0]),
-                    lookat_point=nav_T_lookat.position,
+                    start_point=nav_T_top * np.array([0, width, 0]),
+                    end_point=nav_T_top * np.array([0, -width, 0]),
+                    lookat_point=nav_T_lookat.translation(),
                     params=self.params,
                 ),
 
@@ -204,7 +183,7 @@ class PropertyTour(Skill):
                 OrbitMotion(nav_T_lookat, radius, height, 1, self.params),
 
                 # Fly down to the ground
-                CableMotion(nav_T_up, nav_T_back, self.params),
+                CableMotion(nav_T_top, nav_T_back, self.params),
 
                 # Fly over the roof
                 CableMotion(nav_T_back, nav_T_over, self.params),
@@ -228,7 +207,6 @@ class PropertyTour(Skill):
                 # Various panoramas in different spots
             ]
             self.motion_index = 0
-            self._goal_point_name = 'A'
             er.REPORT_STATUS("go pressed")
 
         elif button_id_pressed == 'skip':
@@ -242,7 +220,7 @@ class PropertyTour(Skill):
 
         if button_id_pressed == 'stop':
             er.REPORT_STATUS('stopped')
-            api.subject.cancel_if_following(api.utime)
+            api.subject.cancel_subject_tracking(api.utime)
             self.state = TourState.STOP
 
     def get_motion(self):
@@ -257,10 +235,8 @@ class PropertyTour(Skill):
             super(PropertyTour, self).update_ui(api)
 
     def update(self, api):
-        # Stop following
-        if self._first_launch:
-            api.subject.cancel_if_following(api.utime)
-            self._first_launch = False
+        # Stop tracking
+        api.subject.cancel_subject_tracking(api.utime)
 
         # Update the speed dynamically, in case the user changes it
         self.params.speed = self.get_value_for_user_setting('speed')
@@ -274,22 +250,14 @@ class PropertyTour(Skill):
             er.REPORT_STATUS("Exiting due to planner landing")
             api.skills.request_skill(api.utime, 'Basic')
 
-        # Check if the planner is ready for commands.
-        # XXX: get rid of this?
-        valid_subject_focus = api.subject.get_focus_state() in (
-            subject_focus_state_enum_p.NO_SUBJECT,
-            subject_focus_state_enum_p.FOLLOW,
-            subject_focus_state_enum_p.SPOOFED_FOLLOW)
-
         self.has_subject = api.subject.is_following_subject(api.utime)
 
         # Execute the current motion.
-        if api.vehicle.get_pose() and valid_subject_focus:
+        if api.vehicle.get_pose():
             if self.state == TourState.GOTO:
                 motion = self.get_motion()
                 if motion:
                     motion.update(api)
-                    api.focus.ready = True
                     if motion.done:
                         motion.reset(api)
                         er.REPORT_STATUS("motion done, index ++ {}", self.motion_index)
@@ -306,7 +274,7 @@ class PropertyTour(Skill):
 
         # Update the ui periodically
         if self.publish_downsampler.ready(api.utime):
-            self._layout_needs_update = True
+            self.set_needs_layout()
 
     def get_onscreen_controls(self, api):
         title = ''
@@ -316,13 +284,12 @@ class PropertyTour(Skill):
         controls_enabled = False
         targets_enabled = False
         show_slider = False
-        progress = 0
         promoted_control_id = ''
         battery_low_land = api.health_monitor.is_battery_critically_low()
 
         if battery_low_land:
             title = 'Low Battery'
-            detail_text = 'Cable Cam disabled'
+            detail_text = 'Tour disabled'
             controls_enabled = True
 
         elif self.state == TourState.SETUP:
@@ -353,12 +320,8 @@ class PropertyTour(Skill):
             er.REPORT_WARNING('Unknown state "{}"'.format(self.state))
 
         return dict(
-            # state
             title=title,
             detail=detail_text,
-            progress_ratio=progress,
-
-            # movement controls
             arrows_enabled=controls_enabled,
             height_slider_enabled=controls_enabled,
             zoom_slider_enabled=controls_enabled and self.has_subject,
