@@ -38,5 +38,16 @@
     "explanation": "",
     "hint": "Detect and follow people around a defined region",
     "short_name": "SecurityBot"
+  },
+  "voxels.Voxels": {
+    "control_type": "MOVEMENT",
+    "customer": true,
+    "display_name": "Voxels",
+    "explanation": "",
+    "has_custom_layout": false,
+    "hint": "Show the obstacle map",
+    "short_name": "Voxels",
+    "subscribe_voxels": true,
+    "show_voxels": true
   }
 }

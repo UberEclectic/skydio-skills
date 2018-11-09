@@ -91,7 +91,6 @@ class ComLink(Skill):
 
     def update(self, api):
         """ Control the vehicle. """
-
         # If we're executing a motion, disable phone commands and update the motion
         if self.motion:
             api.phone.disable_movement_commands()
@@ -104,3 +103,8 @@ class ComLink(Skill):
         else:
             # Otherwise, just listen to the phone.
             api.phone.enable_movement_commands()
+
+        # TODO(matt): merge these into a planner API and don't expose settings directly.
+        api.planner.settings.obstacle_safety = 0.0
+        api.planner.settings.terminal_cost_scale = 0.0
+        api.movement.set_max_speed(3.0)

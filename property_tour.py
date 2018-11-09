@@ -180,7 +180,7 @@ class PropertyTour(Skill):
                 ),
 
                 # Orbit the center
-                OrbitMotion(nav_T_lookat, radius, height, 1, self.params),
+                OrbitMotion(nav_T_lookat.translation(), radius, height, 1, self.params),
 
                 # Fly down to the ground
                 CableMotion(nav_T_top, nav_T_back, self.params),

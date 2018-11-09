@@ -33,7 +33,7 @@ class SkillClient(object):
             If you're directly connecting to a real R1 via WiFi, use 192.168.10.1
             If you're connected to a simulator over the Internet, use https://sim####.sim.skydio.com
         skill_key (str): the unique identifier for your Skill.
-            If you're Skill is not active, messages will be dropped.
+            If your Skill is not active, messages will be dropped.
             Example: samples.com_link.ComLink
     """
 
@@ -62,41 +62,37 @@ class SkillClient(object):
             raise RuntimeError('No response data: {}'.format(server_response.get('error')))
         return server_response['data']
 
-    def send_custom_comms(self, data, ack=True, request_id=0):
+    def send_custom_comms(self, data, no_response=False):
         """
         Send custom bytes to the vehicle and optionally return a response
 
         Args:
             skill_key (str): The identifer for the Skill you want to receive this message.
             data (bytes): The payload to send.
-            ack (bool): Set this to False if you don't want a response.
-            request_id (int): an optional id for your request that will be included in the response.
+            no_response (bool): Set this to True if you don't want a response.
 
         Returns:
             dict: a dict with metadata for the response and a 'data' field, encoded by the Skill.
         """
 
-        request_rpc = {
-            'ack': ack,
-            'requestId': request_id,
-            'skillKey': self.skill_key,
+        rpc_request = {
             'data': base64.b64encode(data),
-            'utime': int(time.time() * 1e6),
-            'version': 1,
+            'skill_key': self.skill_key,
+            'no_response': no_response,  # this key is option and defaults to False
         }
 
         # Post rpc to the server as json.
         try:
-            response_rpc = self.post_json('custom_comms', request_rpc)
+            rpc_response = self.post_json('custom_comms', rpc_request)
         except Exception as error:  # pylint: disable=broad-except
-            fmt_err('Error {}', error)
-            return {'requestId': request_id, 'status': 'EXCEPTION'}
+            fmt_err('Comms Error: {}\n', error)
+            return None
 
         # Parse and return the rpc.
-        if response_rpc:
-            if 'data' in response_rpc:
-                response_rpc['data'] = base64.b64decode(response_rpc['data'])
-        return response_rpc
+        if rpc_response:
+            if 'data' in rpc_response:
+                rpc_response['data'] = base64.b64decode(rpc_response['data'])
+        return rpc_response
 
 
 def main():
