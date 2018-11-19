@@ -15,13 +15,17 @@ and receive telemetry.
 1. [Sign up](https://console.skydio.com) to be a Skydio developer. (Note: this is currently invite-only.)
 1. Create a new [skillset](https://console.skydio.com/skillsets/).
 1. Upload the unzipped sample folder into your newly created skillset.
-1. Open the Skydio App (must be version 4.0+) and select a simulator via the Settings tab.
+1. Open the [simulator view](https://console.skydio.com/simulators) in a new tab and select yours from the dropdown.
+1. Open the Skydio App (must be version 4.0+) and [select a simulator](https://console.skydio.com/docs/skills/getting_started.html#running-the-skydio-mobile-app) via the Settings tab.
 1. Tap `FLY NOW` in in Fly tab, and you should see streaming video from the simulator.
+1. Open a web-based simulator viewer in order to see a 3d-person view and control a person.
 1. If your sim vehicle is not already flying, swipe up to takeoff.
 1. Select one of sample skills from the menu in the app to activate.
 1. Edit the code for the skill using your favorite code editor.
 1. When you save file in the synced folder, the code will be uploaded to the cloud via your console web page.
-1. Press the `Refresh` button in the Skydio app to reload the code actively running in the simulator. You may need to re-select your skill, as the system restarts and selects the `Follow` skill by default.
+1. Press the `Refresh` button in the Skydio app to reload the code actively running in the simulator. You will need to re-select your skill, as the system restarts and selects the `Follow` skill by default.
+
+Visit the [Getting Started](https://console.skydio.com/docs/skills/getting_started.html) section of the SDK docs for more information.
 
 ## Table of Contents
 
