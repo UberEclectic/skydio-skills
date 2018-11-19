@@ -19,11 +19,11 @@ and receive telemetry.
 1. Open the Skydio App (must be version 4.0+) and [select the matching simulator](https://console.skydio.com/docs/skills/getting_started.html#running-the-skydio-mobile-app) via the Settings tab.
 1. Tap `FLY NOW` in in Fly tab, and you should see streaming video from the simulator.
 1. If your sim vehicle is not already flying, swipe up to takeoff.
-1. Select the PolygonPath sample skill from the menu in the app to activate it. You should see a `START` button on screen. Pressing it will initiate the polygon motion.
-1. Edit the code for the `polygon_path.py` using your favorite code editor.
-1. When you save any file in the synced folder, the code will be uploaded to the cloud via your console web page.
+1. Select the `PropertyTour` sample skill from the menu in the app to activate it. You should see a `Go` button on screen. Pressing it will initiate the automated tour.
+1. Edit the code for the `property_tour.py` using your favorite code editor. Uncomment line 183 to add a new `OrbitMotion` to the tour.
+1. Save the file and your change will be automatically uploaded to the cloud via your open skillset web page.
 1. Press the `Synchronize skills` button in the skill selection menu of the Skydio app to redeploy your code to the simulator. You will need to re-select your skill, as the system restarts and selects the `Follow` skill by default.
-1. Any errors will appear in the debugging console above the simulator pane. Look out for red text describing the error.
+1. If your change worked, you should see a new orbit motion in the tour when you run it. However, if an error occured, the vehicle will not execute the skill. Any errors will appear in the debugging console above the simulator pane. Look out for red text describing the error.
 
 Visit the [Getting Started](https://console.skydio.com/docs/skills/getting_started.html) section of the SDK docs for more information.
 
