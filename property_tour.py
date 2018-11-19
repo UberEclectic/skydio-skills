@@ -179,8 +179,8 @@ class PropertyTour(Skill):
                     params=self.params,
                 ),
 
-                # Orbit the center
-                OrbitMotion(nav_T_lookat.translation(), radius, height, 1, self.params),
+                # TODO: uncomment this line to add an orbit around the house
+                # OrbitMotion(nav_T_lookat.translation(), radius, height, 1, self.params),
 
                 # Fly down to the ground
                 CableMotion(nav_T_top, nav_T_back, self.params),
