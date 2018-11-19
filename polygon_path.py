@@ -69,6 +69,7 @@ class PolygonPath(Skill):
         super(PolygonPath, self).__init__()
         # whether we are executing the polygon motion, or waiting for user control input.
         self.running = False
+        self.publish_downsampler = tm.DownSampler(1.0)
 
         # the position of the center of the polygon in the nav frame
         self.center = None
@@ -125,6 +126,25 @@ class PolygonPath(Skill):
 
         return controls
 
+    def update_ar_scene(self, api):
+        """Draw prisms at our destination."""
+        api.scene.clear_all_objects()
+
+        num_sides = float(self.get_value_for_user_setting('num_sides'))
+        radius = self.get_value_for_user_setting('radius')
+        adjust_angle = pi -(num_sides-2) * pi / num_sides / 2
+
+        for side in range(int(num_sides)):
+            desired_angle = side / num_sides * M_2PI
+            side_angle = adjust_angle + desired_angle
+            center_rot = Rot3.Ypr(side_angle, 0, 0)
+            center_pos = self.center + radius * np.array([cos(desired_angle), sin(desired_angle), 0])
+            nav_T_side_center = Transform(orientation=center_rot, position=center_pos)
+            size = 2 * sin(pi/num_sides) * radius
+            position = nav_T_side_center * np.array([size / 2, 0, -1])
+            p = Prism(nav_T_center=Transform(center_rot, position), np.array([size, .2, .2]))
+            api.scene.add_prism(p)
+
     def update(self, api):
         """ Called by the sdk multiple times a second. """
         if not self.running:
@@ -154,6 +174,9 @@ class PolygonPath(Skill):
             self.desired_position = self.center + radius * direction
             print("new desired position {}".format(self.desired_position))
             self.last_change_utime = api.utime
+
+        if self.publish_downsampler.ready(api.utime):
+            self.update_ar_scene(api)
 
         # Compute the distance between our goal and the vehicle
         position_delta = self.desired_position - api.vehicle.get_position()
