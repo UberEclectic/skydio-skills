@@ -74,7 +74,6 @@ class PolygonPath(Skill):
         super(PolygonPath, self).__init__()
         # whether we are executing the polygon motion, or waiting for user control input.
         self.running = False
-        self.publish_downsampler = tm.DownSampler(1.0)
 
         # the position of the center of the polygon in the nav frame
         self.center = None
@@ -87,6 +86,9 @@ class PolygonPath(Skill):
 
         # the system time when we switched to that vertex
         self.last_change_utime = -1
+
+        # create a downsampler so we can update AR at most once a second
+        self.publish_downsampler = tm.DownSampler(1.0)
 
     def button_pressed(self, api, button_id):
         """ Called by the sdk whenever the user presses a button """
@@ -132,7 +134,7 @@ class PolygonPath(Skill):
         return controls
 
     def update_ar_scene(self, api):
-        """Draw prisms at our destination."""
+        """Draw prisms in the shape of the polygon."""
         api.scene.clear_all_objects()
 
         num_sides = float(self.get_value_for_user_setting('num_sides'))
