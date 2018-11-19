@@ -15,8 +15,7 @@ and receive telemetry.
 1. [Sign up](https://console.skydio.com) to be a Skydio developer. (Note: this is currently invite-only.)
 1. Create a new [skillset](https://console.skydio.com/skillsets/).
 1. Upload the unzipped sample folder into your newly created skillset.
-1. Enable `author-staged` mode in the web interface.
-1. Open the Skydio App (must be version 4.0+) and connect to a simulator via the Settings tab.
+1. Open the Skydio App (must be version 4.0+) and select a simulator via the Settings tab.
 1. Tap `FLY NOW` in in Fly tab, and you should see streaming video from the simulator.
 1. If your sim vehicle is not already flying, swipe up to takeoff.
 1. Select one of sample skills from the menu in the app to activate.
