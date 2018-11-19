@@ -1,53 +1,32 @@
 {
   "com_link.ComLink": {
-    "control_type": "MOVEMENT",
-    "customer": true,
     "display_name": "ComLink",
     "explanation": "",
     "hint": "Send messages over HTTP",
     "short_name": "ComLink"
   },
   "polygon_path.PolygonPath": {
-    "control_type": "MOVEMENT",
-    "customer": true,
     "display_name": "Polygon Path",
     "explanation": "Fly in the shape of a polygon defined by adjustable settings:\n\nNumber of sides\nRadius\nDirection",
     "hint": "Fly in the shape of a polygon",
     "short_name": "Polygon"
   },
   "property_tour.PropertyTour": {
-    "customer": true,
-    "control_type": "MOVEMENT",
     "display_name": "Property Tour",
     "explanation": "Create a tour of your house, automatically",
     "hint": "Tour your house.",
     "short_name": "Tour"
   },
   "roof_inspection.RoofInspection": {
-    "customer": true,
-    "control_type": "MOVEMENT",
     "display_name": "Roof Inspection",
     "explanation": "Scan your roof",
     "hint": "Scan your roof",
     "short_name": "Inspection"
   },
   "security_bot.SecurityBot": {
-    "control_type": "MOVEMENT",
-    "customer": true,
     "display_name": "Security Bot",
     "explanation": "",
     "hint": "Detect and follow people around a defined region",
     "short_name": "SecurityBot"
-  },
-  "voxels.Voxels": {
-    "control_type": "MOVEMENT",
-    "customer": true,
-    "display_name": "Voxels",
-    "explanation": "",
-    "has_custom_layout": false,
-    "hint": "Show the obstacle map",
-    "short_name": "Voxels",
-    "subscribe_voxels": true,
-    "show_voxels": true
   }
 }
