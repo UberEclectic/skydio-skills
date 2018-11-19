@@ -4,6 +4,7 @@ from __future__ import print_function
 # Math helpers
 from math import pi, cos, sin
 import numpy as np
+from shared.util.time_manager import time_manager as tm
 from vehicle.skills.util import core
 
 # The base class for all Skills
@@ -14,6 +15,10 @@ from vehicle.skills.util.ui import UiButton
 from vehicle.skills.util.ui import UiRadioGroup
 from vehicle.skills.util.ui import UiRadioOption
 from vehicle.skills.util.ui import UiSlider
+
+# Augmented Reality Support
+from vehicle.skills.util.transform import Rot3, Transform
+from vehicle.skills.util.ar import Prism
 
 
 M_2PI = 2 * pi
@@ -132,17 +137,17 @@ class PolygonPath(Skill):
 
         num_sides = float(self.get_value_for_user_setting('num_sides'))
         radius = self.get_value_for_user_setting('radius')
-        adjust_angle = pi -(num_sides-2) * pi / num_sides / 2
+        adjust_angle = pi - (num_sides-2) * pi / num_sides / 2
 
         for side in range(int(num_sides)):
             desired_angle = side / num_sides * M_2PI
             side_angle = adjust_angle + desired_angle
             center_rot = Rot3.Ypr(side_angle, 0, 0)
             center_pos = self.center + radius * np.array([cos(desired_angle), sin(desired_angle), 0])
-            nav_T_side_center = Transform(orientation=center_rot, position=center_pos)
+            nav_T_side_center = Transform(center_rot, center_pos)
             size = 2 * sin(pi/num_sides) * radius
-            position = nav_T_side_center * np.array([size / 2, 0, -1])
-            p = Prism(nav_T_center=Transform(center_rot, position), np.array([size, .2, .2]))
+            position = nav_T_side_center * np.array([size / 2, 0, -1.3])
+            p = Prism(nav_T_center=Transform(center_rot, position), size=np.array([size, .2, .2]))
             api.scene.add_prism(p)
 
     def update(self, api):
