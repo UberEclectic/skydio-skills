@@ -11,6 +11,7 @@ from vehicle.skills.util.transform import Transform
 
 
 class ComLink(Skill):
+
     def __init__(self):
         super(ComLink, self).__init__()
         self.data = {}
@@ -84,7 +85,7 @@ class ComLink(Skill):
         controls['title'] = str(self.data.get('title', 'No Response'))
         controls['detail'] = str(self.data.get('detail', ''))
         if not self.pressed:
-            controls['buttons'] = [UiButton('send', label='Send Message')]
+            controls['buttons'] = [UiButton('send', label='Send')]
         else:
             controls['buttons'] = []
         return controls

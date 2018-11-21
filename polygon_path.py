@@ -143,13 +143,14 @@ class PolygonPath(Skill):
 
         for side in range(int(num_sides)):
             desired_angle = side / num_sides * M_2PI
-            side_angle = adjust_angle + desired_angle
-            center_rot = Rot3.Ypr(side_angle, 0, 0)
-            center_pos = self.center + radius * np.array([cos(desired_angle), sin(desired_angle), 0])
-            nav_T_side_center = Transform(center_rot, center_pos)
-            size = 2 * sin(pi/num_sides) * radius
-            position = nav_T_side_center * np.array([size / 2, 0, -1.3])
-            p = Prism(nav_T_center=Transform(center_rot, position), size=np.array([size, .2, .2]))
+            side_rot = Rot3.Ypr(adjust_angle + desired_angle, 0, 0)
+            vertex_offset = radius * np.array([cos(desired_angle), sin(desired_angle), 0])
+            vertex_pos = self.center + vertex_offset
+            nav_T_vertex = Transform(side_rot, vertex_pos)
+            size = 2 * sin(pi / num_sides) * radius
+            prism_pos = nav_T_vertex * np.array([size / 2, 0, -1.3])
+            p = Prism(nav_T_center=Transform(side_rot, prism_pos),
+                      size=np.array([size, .2, .2]))
             api.scene.add_prism(p)
 
     def update(self, api):

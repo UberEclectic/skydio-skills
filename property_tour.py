@@ -8,7 +8,7 @@ from vehicle.skills.skills import Skill
 from vehicle.skills.util import core
 from vehicle.skills.util.motions import CableMotion
 from vehicle.skills.util.motions import LookatMotion
-from vehicle.skills.util.motions import OrbitMotion
+from vehicle.skills.util.motions import OrbitMotion  # pylint: disable=unused-import
 from vehicle.skills.util.transform import Rot3
 from vehicle.skills.util.transform import Transform
 from vehicle.skills.util.ui import UiButton
@@ -287,7 +287,7 @@ class PropertyTour(Skill):
             controls_enabled = True
 
         elif self.state == TourState.SETUP:
-            title = 'Press Go to Start Tour'
+            title = 'Press Go to Begin Tour'
             detail_text = 'R1 will automatically film the area.'
             controls_enabled = True
             show_stop = False
@@ -296,14 +296,14 @@ class PropertyTour(Skill):
             promoted_control_id = 'go'
 
         elif self.state == TourState.GOTO:
-            title = 'Running'
-            detail_text = "index = {}".format(self.motion_index)
+            title = 'Tour in Progress'
+            detail_text = "Step {}".format(self.motion_index)
             show_slider = True
             targets_enabled = False
             buttons.append(UiButton('skip', label='Skip'))
 
         elif self.state == TourState.STOP:
-            title = 'Press Go to Start Tour'
+            title = 'Press Go to Start New Tour'
             controls_enabled = True
             show_stop = False
             targets_enabled = False
