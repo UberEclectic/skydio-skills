@@ -1,10 +1,8 @@
 Skydio confidential pre-release software. DO NOT DISTRIBUTE
 
 
-Sample Skills
-=============
-
-For the Skydio Skills SDK
+Skydio Skills SDK
+=================
 
 This repo shows you how to programmatically move the R1,
 detect and follow subjects,
