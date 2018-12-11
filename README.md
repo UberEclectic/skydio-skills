@@ -1,5 +1,5 @@
-Skydio Skills SDK
-=================
+Skydio Skills
+=============
 
 This repo shows you how to programmatically move the R1,
 detect and follow subjects,
@@ -7,7 +7,7 @@ and receive telemetry.
 
 ## Try these skills in the simulator
 1. [Download](https://github.com/Skydio/sample-skills/archive/master.zip) this repo and unzip it.
-1. [Sign up](https://console.skydio.com) to be a Skydio developer. (Note: this is currently invite-only.)
+1. [Sign up](https://console.skydio.com) to be a Skydio developer.
 1. Create a new [skillset](https://console.skydio.com/skillsets/).
 1. Upload the unzipped sample folder into your newly created skillset. This creates an automatic file sync between our server and your browser tab.
 1. Open the [simulator view](https://console.skydio.com/simulators) in a new tab and select yours from the dropdown.
@@ -22,6 +22,8 @@ and receive telemetry.
 
 Visit the [Getting Started](https://console.skydio.com/docs/skills/getting_started.html) section of the SDK docs for more information.
 
+Visit the [Developer Forum](https://forum.skydio.com/) for support from the Skydio team.
+
 ## Table of Contents
 
  - [Polygon Path](polygon_path.py): Fly a path in the shape of a user-defined polygon.
@@ -29,3 +31,4 @@ Visit the [Getting Started](https://console.skydio.com/docs/skills/getting_start
  - [Roof Inspection](roof_inspection.py): Fly a configurable scanning pattern over the roof of a house.
  - [Security Bot](security_bot.py): Follow anyone that gets within range of a home point, then return.
  - [Com Link](com_link.py): Communicate with a Skill using HTTP. Client code is in [skydio_client.py](skydio_client.py).
+ - [Party Mode](party_mode.py): Automatically follow subjects for 15 seconds at a time within a defined area.

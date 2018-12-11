@@ -5,6 +5,12 @@
     "hint": "Send messages over HTTP",
     "short_name": "ComLink"
   },
+  "party_mode.PartyMode": {
+    "display_name": "Party Mode",
+    "explanation": "Look for people to follow for 15 seconds each.",
+    "hint": "Follow for people at a party",
+    "short_name": "Party"
+  },
   "polygon_path.PolygonPath": {
     "display_name": "Polygon Path",
     "explanation": "Fly in the shape of a polygon defined by adjustable settings:\n\nNumber of sides\nRadius\nDirection",
