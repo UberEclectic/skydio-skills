@@ -1,6 +1,3 @@
-Skydio confidential pre-release software. DO NOT DISTRIBUTE
-
-
 Skydio Skills SDK
 =================
 
