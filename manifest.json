@@ -5,6 +5,12 @@
     "hint": "Send messages over HTTP",
     "short_name": "ComLink"
   },
+  "horizon.Horizon": {
+    "display_name": "Horizon",
+    "explanation": "Force the camera to point at the horizon, instead of trying to keep the subject vertically centered.",
+    "hint": "Keep the camera level",
+    "short_name": "Horizon"
+  },
   "party_mode.PartyMode": {
     "display_name": "Party Mode",
     "explanation": "Look for people to follow for 15 seconds each.",
