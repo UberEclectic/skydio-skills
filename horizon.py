@@ -58,16 +58,17 @@ class Horizon(Skill):
             return
 
         # Image space requirements, to keep from looking down.
-        # api.focus.set_image
+        # Idelaly this would work, but it doesn't.
         api.focus.set_image_space(weight=1.0, dead_zone_x=0.0, dead_zone_y=1.0)
+        api.focus.settings.image_space.centering_aggressiveness = 0.0
 
-        # Command a specific heading so vehicle continues yawing to mantain centered subject in X.
-        delta = vehicle - subject
+        # Command a specific heading so vehicle continues yawing to maintain centered subject in X.
+        delta = subject - vehicle
         heading = core.azimuth(delta)
         api.movement.set_heading(heading, weight=1.0)
 
         # Kill the heading rate, in case that is doing something.
-        api.movement.set_heading_rate(weight=0.0)
+        api.movement.set_heading_rate(0, weight=0.0)
 
         # Enforce a particular pitch.
         pitch = 0
