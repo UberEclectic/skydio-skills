@@ -39,7 +39,6 @@ class AngleFollow(Skill):
         self.range = 5.0
         self.was_following = False
 
-        self.static_offset = 0
         self.downsampler = tm.DownSampler(1.0)
 
 
@@ -83,7 +82,6 @@ class AngleFollow(Skill):
             self.set_needs_layout()
 
     def button_pressed(self, api, button_id):
-        # TODO(matt): why is this required?
         if button_id == 'stop':
             api.subject.cancel_subject_tracking(api.utime)
 
@@ -115,31 +113,14 @@ class AngleFollow(Skill):
     def get_relative_azimuth_desired(self, api):
         return -math.radians(self.get_value_for_user_setting('angle'))
 
-    def get_azimuth_aggressiveness(self, subject_speed, max_speed):
-        # Aggressiveness scales as such:
-        #     ___________________
-        # 1| /                   \  max_speed
-        #  |/                     \|
-        # 0|----------------------------
-        #  |0 |max_agg_speed     |max_speed - agg_cutoff_speed_margin
-        #
-        # The general idea is that if the vehicle is reaching max speed limits, we give up azimuth
-        # first.
-        if subject_speed < 0:
-            return 0.0
-        if subject_speed < self.max_agg_speed:
-            return ac_math.clamp(subject_speed / self.max_agg_speed, 0.0, 1.0)
-        return 1.0
-        # if subject_speed < max_speed - self.agg_cutoff_speed_margin:
-        #     return 1.0
-        # return ac_math.clamp((max_speed - subject_speed) / self.agg_cutoff_speed_margin,
-        #                      0.0, 1.0)
 
     def compute_azimuth(self, api):
         subject_velocity = api.subject.get_velocity()
-        subject_azimuth = self.azimuth_filter(api.utime, subject_velocity)
         relative_azimuth_desired = self.get_relative_azimuth_desired(api)
         vehicle_azimuth = api.vehicle.get_azimuth(reference_point=api.subject.get_position())
+
+        # TODO(matt): we may want to lock this until the subject has moved significantly.
+        subject_azimuth = self.azimuth_filter(api.utime, subject_velocity)
 
         if subject_azimuth is None or subject_velocity is None or relative_azimuth_desired is None or vehicle_azimuth is None:
             # Missing variables. Dont set aggressiveness
@@ -150,17 +131,15 @@ class AngleFollow(Skill):
 
         azimuth = ac_math.mod_2_pi(subject_azimuth + relative_azimuth_desired)
 
-        weight = self.get_azimuth_aggressiveness(
-            subject_speed,
-            api.planner.get_speed_limit(default_if_none=15.0)
-        )
-        weight = 1.0
-        api.focus.set_azimuth(azimuth, weight)
+        # Set the desired azimuth with max weight
+        # TODO(matt): there may be situations where we want to lower the weight.
+        # Like if the vehicle is getting stuck and could find a better way if the constraint was relaxed.
+        api.focus.set_azimuth(azimuth, weight=1.0)
 
         offsets = self.image_space_offsets.get_image_space_offset(
             vehicle_azimuth, subject_azimuth, subject_velocity)
 
-        # TODO(matt): convert
+        # TODO(matt): convert to new api calls
         api.focus.settings.image_space.normalized_coordinates.data += offsets
         api.focus.settings.image_space.aggressiveness = 0.8
         api.focus.settings.image_space.dead_zone.data = self.image_space_deadzone
@@ -177,11 +156,6 @@ class AngleFollow(Skill):
         if self.downsampler.ready(api.utime):
             # update the phone at least once a second, in case it missed a change.
             self.set_needs_layout()
-        # Are these necessary anymore?
-        # api.focus.settings.elevation_aggressiveness = 1.0
-        # api.focus.settings.elevation = self.elevation
-        # api.focus.settings.range_aggressiveness = 1.0
-        # api.focus.settings.range = self.range
 
         following = api.subject.has_subject_track()
         if self.was_following != following:
@@ -190,5 +164,5 @@ class AngleFollow(Skill):
 
         self.compute_azimuth(api)
 
-        # Copy the phone's settings for range and elevation (and possibly azimuth_rate)
+        # Copy the phone's settings for range and elevation
         api.phone.copy_az_el_range_settings(api.focus.settings)
