@@ -14,6 +14,7 @@ from vehicle.skills.skills import Skill
 from vehicle.skills.util.filters import AzimuthFilter
 from vehicle.skills.util.image_space import ImageSpaceOffsets
 from vehicle.skills.util.ui import UiSlider
+from vehicle.skills.util.ui import UiToggle
 
 
 class AngleFollow(Skill):
@@ -30,6 +31,12 @@ class AngleFollow(Skill):
             max_value=180,
             value=0,
             units="deg",
+        ),
+        UiToggle(
+            identifier="pitch_lock",
+            label="Look at Horizon",
+            detail="Keep the camera aimed flat at the horizon, if possible.",
+            value=False,
         ),
     )
 
@@ -77,7 +84,6 @@ class AngleFollow(Skill):
         if setting.id == 'angle':
             # round to the nearest 45
             new_value = ac_math.clamp(round(setting.value / 45.0) * 45, -180, 180)
-            er.REPORT_STATUS("old={}, new={}", setting.value, new_value)
             setting.value = new_value
             self.set_needs_layout()
 
@@ -109,10 +115,8 @@ class AngleFollow(Skill):
             controls['promoted_control'] = None
         return controls
 
-    # pylint: disable=unused-argument
     def get_relative_azimuth_desired(self, api):
         return -math.radians(self.get_value_for_user_setting('angle'))
-
 
     def compute_azimuth(self, api):
         subject_velocity = api.subject.get_velocity()
@@ -148,6 +152,7 @@ class AngleFollow(Skill):
         api.focus.settings.image_space.discounting_halflife = 0.25
         api.focus.settings.image_space.centering_aggressiveness = 0.1
 
+
         # Add a feed-forward vehicle velocity based on the subject.
         if subject_speed > self.subject_velocity_min_feedforward:
             api.movement.set_desired_vel_nav(subject_velocity, weight=0.1)
@@ -166,3 +171,18 @@ class AngleFollow(Skill):
 
         # Copy the phone's settings for range and elevation
         api.phone.copy_az_el_range_settings(api.focus.settings)
+
+        if following and self.get_value_for_user_setting('pitch_lock'):
+            api.phone.disable_movement_commands()
+            # Image space requirements, to keep from camera from looking down...
+            # ... unless the subject is going to leave the frame.
+            api.focus.set_image_space(weight=1.0, dead_zone_x=0.0, dead_zone_y=1.0)
+            api.focus.settings.image_space.centering_aggressiveness = 0.0
+
+            # Kill the heading rate, if any.
+            api.movement.set_heading_rate(0, weight=0.0)
+
+            # Enforce a flat pitch.
+            api.movement.set_gimbal_pitch(pitch_radians=0, weight=1.0)
+        else:
+            api.phone.enable_movement_commands()
