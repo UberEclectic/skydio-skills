@@ -42,37 +42,19 @@ class AngleFollow(Skill):
 
     def __init__(self):
         super(AngleFollow, self).__init__()
-        self.elevation = math.radians(13.0)
-        self.range = 5.0
         self.was_following = False
-
         self.downsampler = tm.DownSampler(1.0)
-
 
         # Helper for leading the subject in image space while moving.
         # Put the subject on the left of the frame if vehicle is filming from the side and the
         # subject is running left to right.
         self.image_space_offsets = ImageSpaceOffsets(
             max_x_offset_scale=-1.0/6,
-            # max_x_offset_scale=0.0,
-
-            # max_y_offset_scale=-1.0/6,
             max_y_offset_scale=0.0,
-
             max_offset_speed=4.0
         )
 
         self.image_space_deadzone = (0.25, 0.2)
-
-        # Subject speed at which maximum azimuth aggressiveness is achieved
-        self.max_agg_speed = 1.5  # [m/s]
-
-        # Subject speed under the planner's max speed at which maximum azimuth aggressiveness
-        # begins to fall off to 0.0
-        self.agg_cutoff_speed_margin = 0.5  # [m/s]
-
-        # Aggressiveness to apply to movement command matching velocity with subject
-        self.subject_velocity_match_aggressiveness = 0.1
 
         # Minimum speed at which to use feedforward subject velocity, to prevent wobbling in hover.
         self.subject_velocity_min_feedforward = 2.0
@@ -116,6 +98,9 @@ class AngleFollow(Skill):
         return controls
 
     def get_relative_azimuth_desired(self, api):
+        """
+        Convert the user's angle setting to a azimuth in radians
+        """
         return -math.radians(self.get_value_for_user_setting('angle'))
 
     def compute_azimuth(self, api):
@@ -152,7 +137,6 @@ class AngleFollow(Skill):
         api.focus.settings.image_space.discounting_halflife = 0.25
         api.focus.settings.image_space.centering_aggressiveness = 0.1
 
-
         # Add a feed-forward vehicle velocity based on the subject.
         if subject_speed > self.subject_velocity_min_feedforward:
             api.movement.set_desired_vel_nav(subject_velocity, weight=0.1)
@@ -162,6 +146,7 @@ class AngleFollow(Skill):
             # update the phone at least once a second, in case it missed a change.
             self.set_needs_layout()
 
+        # update ui when we change follow status
         following = api.subject.has_subject_track()
         if self.was_following != following:
             self.was_following = following
