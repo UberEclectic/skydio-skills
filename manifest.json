@@ -1,4 +1,11 @@
 {
+  "angle_follow.AngleFollow": {
+    "control_type": "AZRATE_EL_RANGE",
+    "display_name": "Angle Follow",
+    "explanation": "Set the angle of the drone relative to a moving subject's velocity.",
+    "hint": "Set the relative position of the drone",
+    "short_name": "Angle"
+  },
   "com_link.ComLink": {
     "display_name": "ComLink",
     "explanation": "",
@@ -6,10 +13,19 @@
     "short_name": "ComLink"
   },
   "horizon.Horizon": {
+    "control_type": "AZRATE_EL_RANGE",
     "display_name": "Horizon",
     "explanation": "Force the camera to point at the horizon, instead of trying to keep the subject vertically centered.",
     "hint": "Keep the camera level",
     "short_name": "Horizon"
+  },
+  "joysticks.Joysticks": {
+    "control_type": "JOYSTICKS",
+    "display_name": "Joysticks",
+    "explanation": "Control the vehicle with dual joysticks",
+    "hint": "Dual-stick controls",
+    "joysticks_enabled": true,
+    "short_name": "Joysticks"
   },
   "party_mode.PartyMode": {
     "display_name": "Party Mode",

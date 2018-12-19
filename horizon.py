@@ -58,7 +58,7 @@ class Horizon(Skill):
             return
 
         # Image space requirements, to keep from looking down.
-        # Idelaly this would work, but it doesn't.
+        # Ideally this would work, but it doesn't.
         api.focus.set_image_space(weight=1.0, dead_zone_x=0.0, dead_zone_y=1.0)
         api.focus.settings.image_space.centering_aggressiveness = 0.0
 

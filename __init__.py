@@ -1,5 +1,7 @@
+from .angle_follow import AngleFollow
 from .com_link import ComLink
 from .horizon import Horizon
+from .joysticks import Joysticks
 from .party_mode import PartyMode
 from .polygon_path import PolygonPath
 from .property_tour import PropertyTour
