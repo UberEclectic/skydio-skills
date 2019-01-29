@@ -1,8 +1,6 @@
 Skydio Skills
 =============
 
-*NOTE (December 2018): You will need a whitelisted Skydio Developer Console beta-testing account to access any of the functionality described below. Please contact sdk@skydio.com for requests.*
-
 This repo shows you how to programmatically move the R1,
 detect and follow subjects,
 and receive telemetry.
