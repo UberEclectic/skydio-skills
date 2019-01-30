@@ -306,8 +306,8 @@ def main():
                         help='move forward X meters.')
     parser.add_argument('--loop', action='store_true',
                         help='keep sending messages')
-    parser.add_argument('--joysticks', action='store_true',
-                        help='Send joystick commands to the vehicle')
+    parser.add_argument('--gamepad', action='store_true',
+                        help='Move the vehicle using a gamepad input device.')
 
     # Experimental: save a 720P image from the vehicle as a .png file
     parser.add_argument('--image', action='store_true',
@@ -328,27 +328,16 @@ def main():
 
     # Example usage: repeatedly send some data and print the response.
     start_time = time.time()
-    last_publish = time.time()
     loop_dt = 1.0
 
     gamepad = None
-    if args.joysticks:
+    if args.gamepad:
         from gamepad_input import GamePad
         gamepad = GamePad()
-        loop_dt = 0.2
+        loop_dt = 0.1
 
     while 1:
         elapsed_time = int(time.time() - start_time)
-        if gamepad:
-            gamepad.update()
-
-        time_since_last_publish = time.time() - last_publish
-
-        if time_since_last_publish < loop_dt:
-            print('skipping loop {}'.format(time_since_last_publish))
-            continue
-        else:
-            print('publishing {}'.format(time_since_last_publish))
 
         request = {
             'title': args.title,
@@ -358,7 +347,8 @@ def main():
             request['forward'] = args.forward
 
         if gamepad:
-            request['joysticks'] = gamepad.get_command()
+            scales = [7.0, 5.0, 5.0, 1.0]
+            request['joysticks'] = [c * s for c, s in zip(gamepad.get_command(), scales)]
 
         fmt_out('Custom Comms Request {}\n', request)
 
@@ -367,7 +357,6 @@ def main():
 
         response = client.send_custom_comms(args.skill_key, data)
         fmt_out('Custom Comms Response {}\n', json.dumps(response, sort_keys=True, indent=True))
-        last_publish = time.time()
 
         if args.image:
             fmt_out('Requesting image\n')
@@ -375,6 +364,8 @@ def main():
 
         if not args.loop:
             break
+
+        time.sleep(loop_dt)
 
     if args.land:
         client.land()

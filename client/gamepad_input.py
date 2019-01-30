@@ -2,6 +2,8 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from collections import defaultdict
+from threading import Thread
+import time
 
 try:
     from inputs import get_gamepad
@@ -9,35 +11,38 @@ except ImportError:
     print('Unable to import the `inputs` module. See https://pypi.org/project/inputs/')
     get_gamepad = lambda: []
 
-def clamp(val, tol=0.05):
-    if abs(val) < tol:
-        val = 0.0
-    return val
-
 
 class GamePad(object):
     """
-    Track the state of the gamepad
+    Continuously track the state of a gamepad using a thread.
     """
+
     def __init__(self):
         self.codes = defaultdict(int)
+
+        def worker():
+            while 1:
+                self.update()
+        self.thread = Thread(target=worker)
+        self.thread.setDaemon(True)
+        self.thread.start()
 
     def update(self):
         """
         Process events from the gamepad.
         This blocks until there is an event.
         """
-
-        # TODO(matt): how to make this non-blocking?
         events = get_gamepad()
-
         for event in events:
-            # Uncomment to print the values of the events for debugging.
-            # print(event.ev_type, event.code, event.state)
-
             if event.ev_type == 'Sync':
                 continue
+            # Uncomment to print the values of the events for debugging.
+            # print(event.ev_type, event.code, event.state)
             self.codes[event.code] = event.state
+
+            # TODO: callbacks for button presses
+
+        time.sleep(0.0001)
 
     def get_command(self):
         """ Return a vx, vy, vz, yaw_rate tuple. """
@@ -59,3 +64,9 @@ class GamePad(object):
         yaw_rate = -1.0 * self.codes['ABS_X'] / max_hat
 
         return (clamp(vx), clamp(vy), clamp(vz), clamp(yaw_rate))
+
+
+def clamp(val, tol=0.05):
+    if abs(val) < tol:
+        val = 0.0
+    return val

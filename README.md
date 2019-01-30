@@ -30,5 +30,5 @@ Visit the [Developer Forum](https://forum.skydio.com/) for support from the Skyd
  - [Property Tour](property_tour.py): Perform a series of cinematic motions to record a real estate video.
  - [Roof Inspection](roof_inspection.py): Fly a configurable scanning pattern over the roof of a house.
  - [Security Bot](security_bot.py): Follow anyone that gets within range of a home point, then return.
- - [Com Link](com_link.py): Communicate with a Skill using HTTP. Client code is in [skydio_client.py](skydio_client.py).
+ - [Com Link](com_link.py): Communicate with a Skill using HTTP. Client code is in [skydio_client.py](client/skydio_client.py).
  - [Party Mode](party_mode.py): Automatically follow subjects for 15 seconds at a time within a defined area.
