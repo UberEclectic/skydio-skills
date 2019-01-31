@@ -136,6 +136,32 @@ class SkydioClient(object):
             fmt_err("Did not successfully auth as pilot\n")
             sys.exit(1)
         self.access_token = response.get('accessToken')
+        fmt_out("Received access token:\n{}\n", self.access_token)
+
+    def update_skillsets(self, user_email, api_url=None):
+        """
+        Update the skillsets available on the vehicle without needing a Skydio Mobile App to do so.
+
+        If this is the first time running this function on this computer an interactive prompt
+        will be shown to get the login_code sent to the user_email. Subsequent requests should not.
+
+        Be sure that the user has uploaded a skillset to the Developer Console with the com_link
+        skill available. Based on the skillset name you use you will need to provide
+        --skill-key <skillset_name>.com_link.ComLink to actually use the skill delivered
+        by this function.
+
+        Args:
+            user_email (str): The user to download skillsets for, this should match the email
+                    used on the Developer Console and on Mobile Apps
+            api_url (str): [optional] Override the Skydio Cloud API url to use
+
+        """
+        from skydio_skillset_update_util import update_cloud_config_on_vehicle
+
+        return update_cloud_config_on_vehicle(user_email=user_email,
+                                              vehicle_url=self.baseurl,
+                                              vehicle_access_token=self.access_token,
+                                              cloud_url=api_url)
 
     def request_json(self, endpoint, json_data=None, timeout=20):
         """ Send a GET or POST request to the vehicle and get a parsed JSON response.
@@ -298,7 +324,8 @@ class SkydioClient(object):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Example command-line interface for a Skill.")
+    parser = argparse.ArgumentParser(
+        description="Example command-line interface for a Skill client.")
     parser.add_argument('--baseurl', metavar='URL', default='http://192.168.10.1',
                         help='the url of the vehicle')
 
@@ -318,6 +345,10 @@ def main():
                         help='send a takeoff command (must be pilot)')
     parser.add_argument('--land', action='store_true',
                         help='send a land command (must be pilot)')
+    parser.add_argument('--update-skillsets-email', type=str,
+                        help='The email of the user to get skillsets for and send them to the '
+                             'vehicle (must be pilot)')
+    parser.add_argument('--skydio-api-url', type=str, help='Override the skydio api url')
 
     # Example actions for the ComLink skill
     parser.add_argument('--title', default='Hello World',
@@ -338,12 +369,17 @@ def main():
     # Create the client to use for all requests.
     client = SkydioClient(args.baseurl, args.pilot, args.token_file, rtp_port=55004)
 
+    if args.update_skillsets_email:
+        client.update_skillsets(args.update_skillsets_email,
+                                api_url=args.skydio_api_url)
+
     if args.takeoff:
         client.takeoff()
 
     if args.pilot:
         # Ensure we switch to the specified skill.
-        # NOTE: You must have already sent this skill to the vehicle via a phone.
+        # NOTE: You must have already sent this skill to the vehicle via a phone or
+        # the update_skillsets_email flag
         client.set_skill(args.skill_key)
 
     # Example usage: repeatedly send some data and print the response.

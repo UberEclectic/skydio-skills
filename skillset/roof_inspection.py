@@ -144,7 +144,7 @@ class RoofInspection(Skill):
             response = self.skip_waypoint(api)
 
         elif rpc_type == 'RETURN_TO_HOME':
-            # TODO: implement an RTP method.
+            # TODO: implement an RTP method
             response = dict(paused=self.paused)
 
         elif rpc_type == 'SCAN_ABORT':
