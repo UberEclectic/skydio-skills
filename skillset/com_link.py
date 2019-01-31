@@ -105,7 +105,7 @@ class ComLink(Skill):
             # Otherwise, just listen to the phone.
             api.phone.enable_movement_commands()
 
-        # TODO(matt): merge these into a planner API and don't expose settings directly.
+        # Enable tighter obstacle avoidance
         api.planner.settings.obstacle_safety = 0.0
         api.planner.settings.terminal_cost_scale = 0.0
         api.movement.set_max_speed(3.0)

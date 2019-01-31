@@ -115,6 +115,9 @@ class PartyMode(Skill):
 
         locked_tracks = []
         for track in tracker_state.tracks:
+            if track.classification.name != 'PERSON':
+                # skip non-person tracks
+                continue
             track_position = core.msg_to_ndarray(track.nav_frame.trans.position)
             distance = norm(track_position - vehicle_position)
             distance_from_start = norm(track_position - self.nav_t_anchor)
@@ -270,7 +273,7 @@ class PartyMode(Skill):
         elif self.state is self.STATE.LOCKED:
             api.phone.disable_movement_commands()
 
-            # TODO(matt): orbit the subject
+            api.focus.set_azimuth_rate(0.5)
 
             locked_time = self.get_time_since_transition(api.utime)
 

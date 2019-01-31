@@ -15,6 +15,18 @@ from vehicle.skills.util.ui import UiButton
 from vehicle.skills.util.ui import UiSlider
 
 
+def get_closest_person(subject_api, reference_position, min_radius=1e6):
+    closest = None
+    for track in subject_api.get_all_tracks():
+        if track.classification != 'PERSON':
+            continue
+        delta = np.linalg.norm(reference_position - track.position)
+        if delta < min_radius:
+            min_radius = delta
+            closest = track
+    return closest
+
+
 class SecurityBot(Skill):
     """
     Visually scan the area, counting people.
@@ -29,8 +41,8 @@ class SecurityBot(Skill):
             label="Search Radius",
             detail="Start following anyone that comes within this range of the home point.",
             min_value=1,
-            max_value=20,
-            value=4,
+            max_value=30,
+            value=5,
             units="m",
         ),
         UiSlider(
@@ -78,7 +90,7 @@ class SecurityBot(Skill):
         if self.running:
             # Show a title based on detected objects
             num_detections = len(api.subject.get_all_tracks())
-            closest_object = api.subject.get_closest_track(self.home_point)
+            closest_object = get_closest_person(api.subject, self.home_point)
             if closest_object:
                 distance = np.linalg.norm(closest_object.position - self.home_point)
             else:
@@ -134,7 +146,7 @@ class SecurityBot(Skill):
 
         # Find the closest track
         search_radius = self.get_value_for_user_setting('search_radius')
-        closest_object = api.subject.get_closest_track(self.home_point, min_radius=search_radius)
+        closest_object = get_closest_person(api.subject, self.home_point, min_radius=search_radius)
 
         # Move to track, if any are close enough
         if closest_object is not None:
