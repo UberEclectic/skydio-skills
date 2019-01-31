@@ -100,9 +100,12 @@ class SkydioClient(object):
         pilot (bool): Set to True in order to directly control the drone. Disables phone access.
 
         token_file (str): Path to a file that contains the auth token for simulator access.
+
+        rtp_port (int): The local port to receive the RTP stream packets.
+            This feature is coming soon to R1, will not work in the simulator.
     """
 
-    def __init__(self, baseurl, pilot=False, token_file=None, rtp_port=0):
+    def __init__(self, baseurl, pilot=False, token_file=None, rtp_port=None):
         self.baseurl = baseurl
         self.access_token = None
         self.session_id = None
@@ -215,11 +218,12 @@ class SkydioClient(object):
         If the session expires, the video stream will stop.
         """
         args = {
-            'wouldAcceptPilot': True,
             'inForeground': True,
             'mediaMode': 'FLIGHT_CONTROL',
-            'takeoffType': 'GROUND_TAKEOFF',
+            'recordingMode': 'VIDEO_4K_30FPS',
             'rtpPort': self.rtp_port or 0,
+            'takeoffType': 'GROUND_TAKEOFF',
+            'wouldAcceptPilot': True,
         }
         if self.session_id:
             args['sessionId'] = self.session_id
@@ -234,6 +238,7 @@ class SkydioClient(object):
             return
 
         self.update_pilot_status()
+        self.disable_faults()
 
         while 1:
             time.sleep(1)  # downsample to prevent spamming the endpoint
@@ -247,6 +252,9 @@ class SkydioClient(object):
             elif phase == 'FLYING':
                 fmt_out('Flying.\n')
                 return
+            else:
+                # print the active faults
+                fmt_out('Faults = {}\n', ','.join(self.get_blocking_faults()))
 
     def land(self):
         """ Land the vehicle. Blocks until on the ground. """
@@ -273,6 +281,21 @@ class SkydioClient(object):
         endpoint = 'set_skill/{}'.format(skill_key)
         self.request_json(endpoint, {'args': {}})
 
+    def get_blocking_faults(self):
+        faults = self.request_json('active_faults').get('faults', {})
+        return [f['name'] for f in faults.values() if f['relevant']]
+
+    def disable_faults(self):
+        """ Tell the vehicle to ignore missing phone info. """
+        faults = {
+            # These faults occur if phone isn't connected via UDP
+            'LOST_PHONE_COMMS_SHORT': 2,
+            'LOST_PHONE_COMMS_LONG': 3,
+        }
+        for _, fault_id in faults.items():
+            self.request_json('set_fault_override/{}'.format(fault_id),
+                              {'override_on': True, 'fault_active': False})
+
 
 def main():
     parser = argparse.ArgumentParser(description="Example command-line interface for a Skill.")
@@ -295,9 +318,6 @@ def main():
                         help='send a takeoff command (must be pilot)')
     parser.add_argument('--land', action='store_true',
                         help='send a land command (must be pilot)')
-    # When --pilot is true, the vehicle will send RTP packets to this port.
-    parser.add_argument('--rtp-port', type=int, default=55004,
-                        help='Set the port used for the incoming RTP video stream. Default=55004')
 
     # Example actions for the ComLink skill
     parser.add_argument('--title', default='Hello World',
@@ -316,7 +336,7 @@ def main():
     args = parser.parse_args()
 
     # Create the client to use for all requests.
-    client = SkydioClient(args.baseurl, args.pilot, args.token_file, args.rtp_port)
+    client = SkydioClient(args.baseurl, args.pilot, args.token_file, rtp_port=55004)
 
     if args.takeoff:
         client.takeoff()
@@ -355,8 +375,11 @@ def main():
         # Arbitrary data format. Using JSON here.
         data = json.dumps(request)
 
+        t = time.time()
         response = client.send_custom_comms(args.skill_key, data)
-        fmt_out('Custom Comms Response {}\n', json.dumps(response, sort_keys=True, indent=True))
+        dt = int((time.time() - t) * 1000)
+        fmt_out('Custom Comms Response (took {}ms) {}\n',
+                dt, json.dumps(response, sort_keys=True, indent=True))
 
         if args.image:
             fmt_out('Requesting image\n')
@@ -364,8 +387,8 @@ def main():
 
         if not args.loop:
             break
-
-        time.sleep(loop_dt)
+        else:
+            time.sleep(loop_dt)
 
     if args.land:
         client.land()

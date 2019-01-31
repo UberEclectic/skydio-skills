@@ -78,7 +78,6 @@ class ComLink(Skill):
             # Parse a joysticks command (body velocity and yaw_rate)
             vx, vy, vz, yaw_rate = self.data['joysticks']
             vel_body = np.array([vx, vy, vz])
-            print("creating joystick motion")
             self.motion = JoystickMotion(vel_body, yaw_rate, api.utime)
 
         # Update the layout every time we get a request.
@@ -127,7 +126,7 @@ class ComLink(Skill):
             # Enable tighter obstacle avoidance
             api.planner.settings.obstacle_safety = 0.0
             api.planner.settings.terminal_cost_scale = 0.0
-            api.movement.set_max_speed(3.0)
+            api.movement.set_max_speed(10.0)
 
             # When the motion completes, clear it and update the UI.
             if self.motion.done:
