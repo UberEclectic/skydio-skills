@@ -100,13 +100,17 @@ class SkydioClient(object):
         pilot (bool): Set to True in order to directly control the drone. Disables phone access.
 
         token_file (str): Path to a file that contains the auth token for simulator access.
+
+        rtp_port (int): The local port to receive the RTP stream packets.
+            This feature is coming soon to R1, will not work in the simulator.
     """
 
-    def __init__(self, baseurl, pilot=False, token_file=None):
+    def __init__(self, baseurl, pilot=False, token_file=None, rtp_port=None):
         self.baseurl = baseurl
         self.access_token = None
         self.session_id = None
         self.access_level = None
+        self.rtp_port = rtp_port if pilot else None
         self._authenticate(pilot, token_file)
 
     def _authenticate(self, pilot=False, token_file=None):
@@ -234,12 +238,18 @@ class SkydioClient(object):
         return rpc_response
 
     def update_pilot_status(self):
-        """ Ping the vehicle to keep session alive, and get status back. """
+        """ Ping the vehicle to keep session alive and get status back.
+
+        The session will expire after 10 seconds of inactivity from the pilot.
+        If the session expires, the video stream will stop.
+        """
         args = {
-            'wouldAcceptPilot': True,
             'inForeground': True,
             'mediaMode': 'FLIGHT_CONTROL',
+            'recordingMode': 'VIDEO_4K_30FPS',
+            'rtpPort': self.rtp_port or 0,
             'takeoffType': 'GROUND_TAKEOFF',
+            'wouldAcceptPilot': True,
         }
         if self.session_id:
             args['sessionId'] = self.session_id
@@ -268,6 +278,9 @@ class SkydioClient(object):
             elif phase == 'FLYING':
                 fmt_out('Flying.\n')
                 return
+            else:
+                # print the active faults
+                fmt_out('Faults = {}\n', ','.join(self.get_blocking_faults()))
 
     def land(self):
         """ Land the vehicle. Blocks until on the ground. """
@@ -293,6 +306,10 @@ class SkydioClient(object):
         fmt_out("Requesting {} skill\n", skill_key)
         endpoint = 'set_skill/{}'.format(skill_key)
         self.request_json(endpoint, {'args': {}})
+
+    def get_blocking_faults(self):
+        faults = self.request_json('active_faults').get('faults', {})
+        return [f['name'] for f in faults.values() if f['relevant']]
 
     def disable_faults(self):
         """ Tell the vehicle to ignore missing phone info. """
@@ -340,15 +357,17 @@ def main():
                         help='move forward X meters.')
     parser.add_argument('--loop', action='store_true',
                         help='keep sending messages')
+    parser.add_argument('--gamepad', action='store_true',
+                        help='Move the vehicle using a gamepad input device.')
 
-    # Experimental: save an image from the vehicle as a .png file
+    # Experimental: save a 720P image from the vehicle as a .png file
     parser.add_argument('--image', action='store_true',
                         help='save an image')
 
     args = parser.parse_args()
 
     # Create the client to use for all requests.
-    client = SkydioClient(args.baseurl, args.pilot, args.token_file)
+    client = SkydioClient(args.baseurl, args.pilot, args.token_file, rtp_port=55004)
 
     if args.update_skillsets_email:
         client.update_skillsets(args.update_skillsets_email,
@@ -365,8 +384,17 @@ def main():
 
     # Example usage: repeatedly send some data and print the response.
     start_time = time.time()
+    loop_dt = 1.0
+
+    gamepad = None
+    if args.gamepad:
+        from gamepad_input import GamePad
+        gamepad = GamePad()
+        loop_dt = 0.1
+
     while 1:
         elapsed_time = int(time.time() - start_time)
+
         request = {
             'title': args.title,
             'detail': elapsed_time,
@@ -374,23 +402,29 @@ def main():
         if args.forward:
             request['forward'] = args.forward
 
+        if gamepad:
+            scales = [7.0, 5.0, 5.0, 1.0]
+            request['joysticks'] = [c * s for c, s in zip(gamepad.get_command(), scales)]
+
         fmt_out('Custom Comms Request {}\n', request)
 
         # Arbitrary data format. Using JSON here.
         data = json.dumps(request)
 
+        t = time.time()
         response = client.send_custom_comms(args.skill_key, data)
-        fmt_out('Custom Comms Response {}\n', json.dumps(response, sort_keys=True, indent=True))
+        dt = int((time.time() - t) * 1000)
+        fmt_out('Custom Comms Response (took {}ms) {}\n',
+                dt, json.dumps(response, sort_keys=True, indent=True))
 
         if args.image:
             fmt_out('Requesting image\n')
             save_image(client, filename='image_{}.png'.format(elapsed_time))
 
-        if args.loop:
-            # Rate-limit to prevent overloading the vehicle.
-            time.sleep(1)
-        else:
+        if not args.loop:
             break
+        else:
+            time.sleep(loop_dt)
 
     if args.land:
         client.land()

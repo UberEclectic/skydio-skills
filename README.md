@@ -31,6 +31,7 @@ Visit the [Getting Started](https://console.skydio.com/docs/skills/getting_start
 - [Roof Inspection](skillset/roof_inspection.py): Fly a configurable scanning pattern over the roof of a house.
 - [Security Bot](skillset/security_bot.py): Follow anyone that gets within range of a home point, then return.
 - [Com Link](skillset/com_link.py): Communicate with a Skill from an external client using HTTP. See instructions in [Client](#client) to use with a python client on your desktop.
+ - [Party Mode](party_mode.py): Automatically follow subjects for 15 seconds at a time within a defined area.
 
 ## Client
 
