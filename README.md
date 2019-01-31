@@ -30,11 +30,11 @@ Visit the [Getting Started](https://console.skydio.com/docs/skills/getting_start
 - [Property Tour](skillset/property_tour.py): Perform a series of cinematic motions to record a real estate video.
 - [Roof Inspection](skillset/roof_inspection.py): Fly a configurable scanning pattern over the roof of a house.
 - [Security Bot](skillset/security_bot.py): Follow anyone that gets within range of a home point, then return.
-- [Com Link](skillset/com_link.py): Communicate with a Skill from an external client using HTTP. See instructions in [Desktop Client](#desktop-client) to use with a python client on your desktop.
+- [Com Link](skillset/com_link.py): Communicate with a Skill from an external client using HTTP. See instructions in [Client](#client) to use with a python client on your desktop.
 
 ## Client
 
-Included is a [Client](client/skydio_client.py) python module which demonstrates how to control
+Included is a [Skydio Client](client/skydio_client.py) python module which demonstrates how to control
 the vehicle and communicate with a skill from your desktop/laptop over wifi without using a Skydio Mobile App.
 
 This demonstration client uses the [Com Link](skillset/com_link.py) Skill
