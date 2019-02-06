@@ -1,6 +1,6 @@
-# Sample Skills
+# Getting Started with the Skydio Skills SDK
 
-For the Skydio Skills SDK
+With this guide, you'll be able to create new Skills for the Skydio App to add custom behaviors to your R1. Skills are python scripts that run onboard R1 and provide basic UI elements inside the app.
 
 ## Skillset
 
