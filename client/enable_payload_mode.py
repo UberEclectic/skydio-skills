@@ -3,7 +3,7 @@ Payload Support
 
 Allow the vehicle to takeoff with it's USB-C port in use.
 
-It is expected to run this script from the connected device.
+It is expected to run this script from the USB-C connected device which should see the vehicle at 192.168.13.1.
 """
 from __future__ import absolute_import
 from __future__ import print_function
