@@ -76,7 +76,8 @@ def main():
                         help='the url of the vehicle')
 
     parser.add_argument('--skill-key', required=True, type=str,
-                        help='name of the skill to run on the vehicle')
+                        help='name of the RemoteControl skill to run on the vehicle. '
+                        'e.g. my_skillset.remote_control.RemoteControl')
 
     # NOTE: you'll need a token file in order to connect to a simulator.
     # Tokens are NOT required for real R1s.
