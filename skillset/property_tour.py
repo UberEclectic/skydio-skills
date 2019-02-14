@@ -128,7 +128,7 @@ class PropertyTour(Skill):
             # Fly backward
             nav_T_back = Transform(
                 rotation=nav_T_cam_flat.rotation(),
-                translation=nav_T_cam_flat * np.array([-radius/2, 0, 0]),
+                translation=nav_T_cam_flat * np.array([-radius / 2, 0, 0]),
             )
 
             # Fly Up
@@ -146,19 +146,19 @@ class PropertyTour(Skill):
             # Crane down
             nav_T_down = Transform(
                 rotation=Rot3.Ypr(yaw, math.radians(88), 0),
-                translation=nav_T_cam_flat * np.array([-radius/4, 0, height]),
+                translation=nav_T_cam_flat * np.array([-radius / 4, 0, height]),
             )
 
             # Go left
             nav_T_left = Transform(
                 rotation=nav_T_cam_flat.rotation(),
-                translation=nav_T_cam_flat * np.array([-5, width/2, 0]),
+                translation=nav_T_cam_flat * np.array([-5, width / 2, 0]),
             )
 
             # Go Right
             nav_T_right = Transform(
                 rotation=nav_T_cam_flat.rotation(),
-                translation=nav_T_cam_flat * np.array([-5, -width/2, 0]),
+                translation=nav_T_cam_flat * np.array([-5, -width / 2, 0]),
             )
 
             # The center of the house
@@ -327,4 +327,3 @@ class PropertyTour(Skill):
             promoted_control='speed' if show_slider else promoted_control_id,
             buttons=buttons,
         )
-

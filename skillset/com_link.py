@@ -6,30 +6,18 @@ import numpy as np
 
 from vehicle.skills.skills import Skill
 from vehicle.skills.util.ui import UiButton
-from vehicle.skills.util.motions.motion import Motion
 from vehicle.skills.util.motions.goto_motion import GotoMotion
 from vehicle.skills.util.transform import Transform
 
 
-class JoystickMotion(Motion):
-    def __init__(self, vel_body, heading_rate, start_utime):
-        params = {}
-        super(JoystickMotion, self).__init__(params)
-        self.vel_body = vel_body
-        self.heading_rate = heading_rate
-        self.start_utime = start_utime
-
-    def update(self, api):
-        elapsed_seconds = (api.utime - self.start_utime) / 1e6
-        if elapsed_seconds > 5.0:
-            # timeout
-            self.done = True
-            return
-        api.movement.set_desired_vel_body(self.vel_body)
-        api.movement.set_heading_rate(self.heading_rate)
-
-
 class ComLink(Skill):
+    """ Communicate with a client device over HTTP.
+
+    This skill displays basic information on the phone, but also
+    sends and receives data from an external python script.
+
+    See skydio_client.py
+    """
 
     def __init__(self):
         super(ComLink, self).__init__()
@@ -74,12 +62,6 @@ class ComLink(Skill):
             # Create Motion object that will manage vehicle position updates over time.
             self.motion = GotoMotion(nav_T_goal, params=dict(speed=speed))
 
-        if 'joysticks' in self.data:
-            # Parse a joysticks command (body velocity and yaw_rate)
-            vx, vy, vz, yaw_rate = self.data['joysticks']
-            vel_body = np.array([vx, vy, vz])
-            self.motion = JoystickMotion(vel_body, yaw_rate, api.utime)
-
         # Update the layout every time we get a request.
         self.set_needs_layout()
 
@@ -109,9 +91,9 @@ class ComLink(Skill):
 
         title = type(self.motion) if self.motion else ''
         controls['title'] = str(self.data.get('title', title))
-        controls['detail'] = str(self.data.get('detail', 'v0.5'))
+        controls['detail'] = str(self.data.get('detail', ''))
         if not self.pressed:
-            controls['buttons'] = [UiButton('send', label='Send')]
+            controls['buttons'] = [UiButton('send', label='Ping')]
         else:
             controls['buttons'] = []
         return controls
@@ -124,8 +106,7 @@ class ComLink(Skill):
             self.motion.update(api)
 
             # Enable tighter obstacle avoidance
-            api.planner.settings.obstacle_safety = 0.0
-            api.planner.settings.terminal_cost_scale = 0.0
+            api.planner.settings.obstacle_safety = 1.0
             api.movement.set_max_speed(10.0)
 
             # When the motion completes, clear it and update the UI.

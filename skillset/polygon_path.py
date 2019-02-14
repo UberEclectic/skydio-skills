@@ -139,7 +139,7 @@ class PolygonPath(Skill):
 
         num_sides = float(self.get_value_for_user_setting('num_sides'))
         radius = self.get_value_for_user_setting('radius')
-        adjust_angle = pi - (num_sides-2) * pi / num_sides / 2
+        adjust_angle = pi - (num_sides - 2) * pi / num_sides / 2
 
         for side in range(int(num_sides)):
             desired_angle = side / num_sides * M_2PI

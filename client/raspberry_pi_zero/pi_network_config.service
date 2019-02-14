@@ -1,0 +1,10 @@
+[Unit]
+Description=Set up the usb network interface and assign an IP
+
+[Service]
+Type=oneshot
+
+ExecStart=/home/pi/setup_network.sh
+
+[Install]
+WantedBy=getty.target

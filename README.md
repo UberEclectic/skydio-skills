@@ -1,6 +1,7 @@
 # Getting Started with the Skydio Skills SDK
 
-With this guide, you'll be able to create new Skills for the Skydio App to add custom behaviors to your R1. Skills are python scripts that run onboard R1 and provide basic UI elements inside the app.
+With this guide, you'll be able to create new Skills for the Skydio App to add custom behaviors to your R1.
+Skills are python scripts that run onboard R1 and provide basic UI elements inside the app.
 
 ## Skillset
 
@@ -30,16 +31,11 @@ Visit the [Getting Started](https://console.skydio.com/docs/skills/getting_start
 - [Property Tour](skillset/property_tour.py): Perform a series of cinematic motions to record a real estate video.
 - [Roof Inspection](skillset/roof_inspection.py): Fly a configurable scanning pattern over the roof of a house.
 - [Security Bot](skillset/security_bot.py): Follow anyone that gets within range of a home point, then return.
-- [Com Link](skillset/com_link.py): Communicate with a Skill from an external client using HTTP. See instructions in [Client](#client) to use with a python client on your desktop.
- - [Party Mode](party_mode.py): Automatically follow subjects for 15 seconds at a time within a defined area.
+- [Party Mode](party_mode.py): Automatically follow subjects for 15 seconds at a time within a defined area.
+- [Com Link](skillset/com_link.py): Communicate with a Skill from an external client using HTTP.
+- [Remote Control](skillset/com_link.py): Fly R1 directly from a computer.
 
 ## Client
 
-Included is a [Skydio Client](client/skydio_client.py) python module which demonstrates how to control
-the vehicle and communicate with a skill from your desktop/laptop over wifi without using a Skydio Mobile App.
-
-This demonstration client uses the [Com Link](skillset/com_link.py) Skill
-on the vehicle to receive and handle movement controls by the desktop client so be sure to follow
-the steps above to create a Skillset for yourself that includes ComLink.
-
-Visit the [Client Readme](client/README.md) for Instructions to use the client with a simulator
+Included is a [Client](client/README.md) python module which demonstrates how to control
+the vehicle and communicate with a skill directly from your computer over WiFi.

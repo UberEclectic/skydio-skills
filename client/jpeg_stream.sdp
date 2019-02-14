@@ -1,0 +1,4 @@
+v=0
+m=video 55004 RTP/AVP 26
+c=IN IP4 127.0.0.1
+a=rtpmap:26 JPEG/90000
