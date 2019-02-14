@@ -1,7 +1,7 @@
 """
 Com Link Demo
 
-While flying a vehicle with your phone, this script will send and receive data via HTTP.
+While flying a vehicle with your phone, this script will send and receive data from a separate computer via HTTP connected over wifi.
 
 Steps:
     1. Connect to R1 with your computer over wifi (or download a token file to use a simulator)
