@@ -1,5 +1,5 @@
 """
-Enterprise Mode
+Payload Support
 
 Allow the vehicle to takeoff with it's USB-C port in use.
 
@@ -17,7 +17,7 @@ def main():
                         help='The url of the vehicle.')
     args = parser.parse_args()
     client = HTTPClient(args.baseurl, pilot=True)
-    print('Requesting enterprise mode')
+    print('Enabling payload mode...')
     client.set_run_mode('IrlProductEnterprise')
     print('Done')
 

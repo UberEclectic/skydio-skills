@@ -133,11 +133,11 @@ your own custom wifi network.
 2. Set up your Pi to act as a usb ethernet gadget. Complete the instructions
     [here](raspberry_pi_zero/README.md). This should allow the pi to get power over USB-C.
 
-3. Copy this folder to your Pi and execute the `enterprise mode` script to allow takeoff with the
+3. Copy this folder to your Pi and execute the `payload mode` script to allow takeoff with the
     USB-C port in use.
 
     ```sh
-    python enable_enterprise_mode.py
+    python enable_payload_mode.py
     ```
 
 4. Start the stream proxy, so that RTP packets will get forwarded to your destination.
