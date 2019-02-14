@@ -105,7 +105,7 @@ class ComLink(Skill):
             api.phone.disable_movement_commands()
             self.motion.update(api)
 
-            # Enable tighter obstacle avoidance
+            
             api.planner.settings.obstacle_safety = 1.0
             api.movement.set_max_speed(10.0)
 
