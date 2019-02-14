@@ -72,7 +72,7 @@ class HTTPClient(object):
     """
 
     def __init__(self, baseurl, client_id=None, pilot=False, token_file=None, stream_settings=None):
-        self.client_id = str(uuid4())
+        self.client_id = client_id or str(uuid4())
         self.baseurl = baseurl
         self.access_token = None
         self.session_id = None
