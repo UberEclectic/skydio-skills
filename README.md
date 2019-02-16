@@ -31,7 +31,7 @@ Visit the [Getting Started](https://console.skydio.com/docs/skills/getting_start
 - [Property Tour](skillset/property_tour.py): Perform a series of cinematic motions to record a real estate video.
 - [Roof Inspection](skillset/roof_inspection.py): Fly a configurable scanning pattern over the roof of a house.
 - [Security Bot](skillset/security_bot.py): Follow anyone that gets within range of a home point, then return.
-- [Party Mode](party_mode.py): Automatically follow subjects for 15 seconds at a time within a defined area.
+- [Party Mode](skillset/party_mode.py): Automatically follow subjects for 15 seconds at a time within a defined area.
 - [Com Link](skillset/com_link.py): Communicate with a Skill from an external client using HTTP.
 - [Remote Control](skillset/remote.py): Fly R1 directly from a computer.
 
