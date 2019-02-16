@@ -58,7 +58,7 @@ def _refresh_if_needed(func):
 
 
 def _dirname_for_url(url):
-    return base64.urlsafe_b64encode(url)
+    return base64.urlsafe_b64encode(url.encode('utf-8')).decode('utf-8')
 
 
 def _store_local_refresh_token(user_email, token, url):
@@ -323,7 +323,7 @@ def update_cloud_config_on_vehicle(user_email, vehicle_url, vehicle_access_token
                   timeout=20)
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Update the skillsets on a vehicle from the cloud")
 
     parser.add_argument('user_email', type=str, help='The email of the user to get skillsets for')
