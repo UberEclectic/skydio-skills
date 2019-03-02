@@ -10,6 +10,8 @@ Communicate with a vehicle using HTTP apis.
 # Prep for python3
 from __future__ import absolute_import
 from __future__ import print_function
+from future.standard_library import install_aliases
+install_aliases()
 
 import base64
 import json
@@ -17,15 +19,9 @@ import os
 import sys
 import threading
 import time
-
-try:
-    # python 2
-    from urllib2 import HTTPError, Request, urlopen
-    from urlparse import urlparse
-except ImportError:
-    # Python 3
-    from urllib.request import HTTPError, Request, urlopen
-    from urllib.parse import urlparse
+from urllib.error import HTTPError
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 
 from uuid import uuid4
 
@@ -155,7 +151,15 @@ class HTTPClient(object):
             request = Request(url, json.dumps(json_data).encode('utf-8'), headers=headers)
         else:
             request = Request(url, headers=headers)
-        response = urlopen(request, timeout=timeout)
+
+        try:
+            response = urlopen(request, timeout=timeout)
+        except HTTPError as err:
+            err_bytes = err.read()
+            err_json = json.loads(err_bytes.decode('utf-8'))
+            print(err_json['error']['message'])
+            raise
+
         status_code = response.getcode()
         status_code_class = int(status_code / 100)
         if status_code_class in [4, 5]:
@@ -363,8 +367,13 @@ class HTTPClient(object):
 
         return filename
 
-    def set_run_mode(self, mode_name):
-        self.request_json('runmode', {
+    def set_run_mode(self, mode_name, set_default=False):
+        if set_default:
+            action = 'SET_DEFAULT'
+        else:
+            action = 'TERMINATE_AND_START'
+        resp = self.request_json('runmode', {
             'run_mode_name': mode_name,
-            'action': 'TERMINATE_AND_START',
+            'action': action,
         })
+        print(resp)

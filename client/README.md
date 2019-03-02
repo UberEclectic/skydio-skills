@@ -2,6 +2,14 @@
 
 This folder contains several client scripts that can communicate with and/or control R1 from a computer.
 
+### Dependencies
+
+The first thing you'll need is the future module for python2/3 compatiblity.
+
+    ```sh
+    pip install future
+    ```
+
 ## ComLink Demo
 
 The first example is [com_link_demo.py](com_link_demo.py).
