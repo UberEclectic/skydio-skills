@@ -10,20 +10,22 @@ Communicate with a vehicle using HTTP apis.
 # Prep for python3
 from __future__ import absolute_import
 from __future__ import print_function
-from future.standard_library import install_aliases
-install_aliases()
 
 import base64
 import json
 import os
+import requests
 import sys
 import threading
 import time
-from urllib.error import HTTPError
-from urllib.parse import urlparse
-from urllib.request import Request, urlopen
-
 from uuid import uuid4
+
+try:
+    # Python 3
+    from urllib.parse import urlparse
+except ImportError:
+    # Python 2
+    from urlparse import urlparse
 
 
 def fmt_out(fmt, *args, **kwargs):
@@ -148,34 +150,24 @@ class HTTPClient(object):
             headers['Authorization'] = 'Bearer {}'.format(self.access_token)
         if json_data is not None:
             headers['Content-Type'] = 'application/json'
-            request = Request(url, json.dumps(json_data).encode('utf-8'), headers=headers)
+            res = requests.post(url, json=json_data, headers=headers)
         else:
-            request = Request(url, headers=headers)
+            res = requests.get(url, headers=headers)
 
         try:
-            response = urlopen(request, timeout=timeout)
-        except HTTPError as err:
-            err_bytes = err.read()
-            err_json = json.loads(err_bytes.decode('utf-8'))
-            print(err_json['error']['message'])
+            res.raise_for_status()
+        except requests.HTTPError as err:
+            print(err.message)
             raise
 
-        status_code = response.getcode()
-        status_code_class = int(status_code / 100)
-        if status_code_class in [4, 5]:
-            raise HTTPError(url, status_code, '{} Client Error'.format(status_code),
-                            response.info(), response)
-        # Ensure that the request is a file like object with a read() method.
-        # We've seen instances where urlopen does not raise an exception, but we cannot read it.
-        if not callable(getattr(response, 'read', None)):
-            raise IOError('urlopen response has no read() method')
-
-        response_bytes = response.read()
-        server_response = json.loads(response_bytes.decode('utf-8'))
-        if 'data' not in server_response:
-            # The server detected an error. Display it.
-            raise RuntimeError('No response data: {}'.format(server_response.get('error')))
-        return server_response['data']
+        if res.headers['Content-Type'] == 'application/json':
+            try:
+                reply = res.json()
+            except ValueError as err:
+                print('unable to decode json')
+                raise
+            return reply['data']
+        return res
 
     def send_custom_comms(self, skill_key, data, no_response=False):
         """
@@ -333,10 +325,9 @@ class HTTPClient(object):
         image_path = image['data']
         url = '{}/shm{}'.format(self.baseurl, image_path)
         try:
-            request = Request(url)
-            response = urlopen(request)
-            image_data = response.read()
-        except HTTPError as err:
+            res = requests.get(url)
+            image_data = res.content
+        except requests.HTTPError as err:
             fmt_err('Got error for url {} {}\n', image_path, err)
             return
         t3 = time.time()

@@ -18,7 +18,8 @@ This is useful for using an onboard raspberry pi to proxy the stream over WiFi t
     apt-get install gstreamer1.0-libav \
             gstreamer1.0-plugins-base \
             gstreamer1.0-plugins-good \
-            gstreamer1.0-plugins-bad
+            gstreamer1.0-plugins-bad \
+            gstreamer1.0-tools
     ```
 
 """

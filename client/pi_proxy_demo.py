@@ -12,6 +12,7 @@ import time
 from skydio.comms.http_client import HTTPClient
 
 # This url is the address of the vehicle from the usb-c port
+# If the connected computer is acting as a usb device, not a host.
 USB_URL = 'http://192.168.13.1'
 
 def main():
@@ -20,6 +21,7 @@ def main():
     parser.add_argument('--baseurl', default=USB_URL)
     parser.add_argument('--takeoff', action='store_true')
     parser.add_argument('--land', action='store_true')
+    parser.add_argument('--repeat', action='store_true')
     args = parser.parse_args()
 
 
@@ -27,10 +29,18 @@ def main():
     stream_settings = {'source': 'NATIVE', 'port': 55004}
 
     # Acquire pilot access
-    client = HTTPClient(baseurl=args.baseurl,
-                        pilot=True,
-                        stream_settings=stream_settings)
-
+    while True:
+        try:
+            client = HTTPClient(baseurl=args.baseurl,
+                                pilot=True,
+                                stream_settings=stream_settings)
+            break
+        except:
+            print('failed to connect')
+            if args.repeat:
+                time.sleep(1)
+            else:
+                return
 
     if args.takeoff:
         print('taking off')

@@ -11,9 +11,9 @@ This script uses an RTP stream from the vehicle to create an opencv window.
 from __future__ import absolute_import
 from __future__ import print_function
 import argparse
+import os
 import threading
 import time
-import os
 
 # Include rtp when importing opencv so we can process the video stream from the vehicle.
 os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = "protocol_whitelist;file,rtp,udp"

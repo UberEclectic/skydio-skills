@@ -4,10 +4,10 @@ This folder contains several client scripts that can communicate with and/or con
 
 ### Dependencies
 
-The first thing you'll need is the future module for python2/3 compatiblity.
+The first thing you'll need is the `requests` module for python2/3 compatible HTTP comms.
 
     ```sh
-    pip install future
+    pip install requests
     ```
 
 ## ComLink Demo
