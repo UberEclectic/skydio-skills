@@ -15,6 +15,10 @@ from skydio.comms.http_client import HTTPClient
 # If the connected computer is acting as a usb device, not a host.
 USB_URL = 'http://192.168.13.1'
 
+# The ip of a machine you want to proxy RTP packets to
+REMOTE_HOST = '192.168.0.26'  # TODO: CHANGE ME TO MATCH YOUR SETUP!
+# Run `python gstreamer_viewer.py --format jpeg` on that machine to view the video.
+
 def main():
 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -41,6 +45,11 @@ def main():
                 time.sleep(1)
             else:
                 return
+
+    # proxy RTP packets to a remote host
+    subprocess.Popen(['python', 'gstreamer_proxy.py',
+                      '--remote-host', REMOTE_HOST,
+                      '--remote-port', '55004'])
 
     if args.takeoff:
         print('taking off')
