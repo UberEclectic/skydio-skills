@@ -4,9 +4,21 @@ import numpy as np
 import shared.util.common.math as ac_math
 from vehicle.skills.skills.base import Skill
 
+# UiElements
+from vehicle.skills.util.ui import UiButton
 
 class SubjectRelativeAzimuth(Skill):
+
     """ Stay a relative angle from the subject's motion. """
+
+    def button_pressed(self, api, button_id):
+        """ Called by the sdk whenever the user presses a button """
+        print("user pressed {}".format(button_id))
+        if button_id == 'start':
+            self.running = True
+        elif button_id == 'stop':
+            self.running = False
+            api.subject.cancel_subject_tracking(api.utime)
 
     def __init__(self):
         super(SubjectRelativeAzimuth, self).__init__()
@@ -26,17 +38,32 @@ class SubjectRelativeAzimuth(Skill):
 
     def get_onscreen_controls(self, api):
         """
-        Disable most onscreen controls.
+        Set the desired onscreen controls.
         """
         controls = {}
-        controls['tap_targets_enabled'] = True
-        controls['double_tap_enabled'] = True
-        controls['drag_enabled'] = True
-
         has_subject = api.subject.has_subject_track()
-        controls['height_slider_enabled'] = not has_subject
-        controls['show_stop'] = has_subject
+        if self.running:
+            controls['tap_targets_enabled'] = True
+            controls['double_tap_enabled'] = True
+            controls['drag_enabled'] = True
+
+            controls['height_slider_enabled'] = not has_subject
+            controls['show_stop'] = has_subject
+            controls['buttons'] = []
+
+        else:
+            # Enable manual controls and a Start Button
+            controls['height_slider_enabled'] = not has_subject
+            controls['buttons'] = [UiButton(identifier='start', label='Start')]
+            controls['tap_targets_enabled'] = True
+            controls['double_tap_enabled'] = True
+            controls['drag_enabled'] = True
+
+            # Hide the stop button
+            controls['show_stop'] = False
+
         return controls
+
 
     def update(self, api):
         self.set_needs_layout()
@@ -76,6 +103,8 @@ class SubjectRelativeAzimuth(Skill):
 
 class Lead(SubjectRelativeAzimuth):
     """ Fly in front of the subject. """
+    # whether we are tracking, or waiting for user control input.
+    running = False
 
     def get_relative_azimuth_desired(self, api):
         return 0.0
@@ -87,6 +116,9 @@ class Side(SubjectRelativeAzimuth):
     def __init__(self):
         super(Side, self).__init__()
         self.relative_azimuth  = math.pi / 2.0
+
+        # whether we are tracking, or waiting for user control input.
+        self.running = False
 
     def get_relative_azimuth_desired(self, api):
         subject_azimuth = api.subject.get_azimuth()
