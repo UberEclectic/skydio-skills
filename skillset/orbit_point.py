@@ -104,13 +104,13 @@ class OrbitPoint(Skill):
         """
         Move in the direction of the tap until we know the surface that the user tapped on.
         """
-        # Don't let the phone control movement of the vehicle.
         assert self.tap_ray is not None
 
+        # The start and end of a line to depth test.
         start = api.vehicle.get_position()
         end = start + TEST_DEPTH * self.tap_ray
 
-        # Use AR to draw the prism
+        # Use AR to draw the line as a prism.
         ray_prism = ar.make_cable_prism(start + VERTICAL_DRAWING_OFFSET, end)
         api.scene.clear_all_objects()
         api.scene.add_prism(ray_prism)
@@ -137,6 +137,7 @@ class OrbitPoint(Skill):
         """
         Orbit the tap location until the user press stop or taps again.
         """
+        # Configure the orbit
         api.focus.set_custom_subject(self.orbit_point)
         api.focus.set_azimuth_rate(0.5, weight=1.0)
         api.focus.set_range(self.get_value_for_user_setting('orbit_range'), weight=0.5)
@@ -155,6 +156,7 @@ class OrbitPoint(Skill):
             self.set_state(State.STOPPED)
             self.orbit_point = None
             self.tap_ray = None
+            self.tap_start = None
 
     def get_onscreen_controls(self, api):
         """
