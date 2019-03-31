@@ -11,10 +11,7 @@ class SubjectRelativeAzimuth(Skill):
     def button_pressed(self, api, button_id):
         """ Called by the sdk whenever the user presses a button """
         print("user pressed {}".format(button_id))
-        if button_id == 'start':
-            self.running = True
-        elif button_id == 'stop':
-            self.running = False
+        if button_id == 'stop':
             api.subject.cancel_subject_tracking(api.utime)
 
     def __init__(self):
@@ -86,7 +83,6 @@ class SubjectRelativeAzimuth(Skill):
 class Lead(SubjectRelativeAzimuth):
     """ Fly in front of the subject. """
     """ whether we are tracking, or waiting for user control input. """
-    running = False
 
     def get_relative_azimuth_desired(self, api):
         return 0.0
@@ -98,9 +94,6 @@ class Side(SubjectRelativeAzimuth):
     def __init__(self):
         super(Side, self).__init__()
         self.relative_azimuth  = math.pi / 2.0
-
-        """ whether we are tracking, or waiting for user control input. """
-        self.running = False
 
     def get_relative_azimuth_desired(self, api):
         subject_azimuth = api.subject.get_azimuth()
