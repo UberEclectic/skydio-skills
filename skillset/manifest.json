@@ -5,6 +5,12 @@
     "hint": "Send messages over HTTP",
     "short_name": "ComLink"
   },
+  "follow_modes.Lead": {
+    "display_name": "Lead2"
+  },
+  "follow_modes.Side": {
+    "display_name": "Side2"
+  },
   "party_mode.PartyMode": {
     "display_name": "Party Mode",
     "explanation": "Look for people to follow for 15 seconds each.",
