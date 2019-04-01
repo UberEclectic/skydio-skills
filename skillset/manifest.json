@@ -11,6 +11,10 @@
   "follow_modes.Side": {
     "display_name": "Side2"
   },
+  "orbit_point.OrbitPoint": {
+    "display_name": "Orbit Point",
+    "explanation": "Double-tap to orbit a location in 3d"
+  },
   "party_mode.PartyMode": {
     "display_name": "Party Mode",
     "explanation": "Look for people to follow for 15 seconds each.",
