@@ -1,6 +1,7 @@
 from .com_link import ComLink
-from .orbit_point import OrbitPoint
+from .follow_modes import Lead, Side
 from .party_mode import PartyMode
+from .orbit_point import OrbitPoint
 from .polygon_path import PolygonPath
 from .property_tour import PropertyTour
 from .remote import RemoteControl
