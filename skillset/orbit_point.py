@@ -71,6 +71,16 @@ class OrbitPoint(Skill):
         ),
     ])
 
+    def setting_changed(self, api, user_setting):
+        # Called by the sdk whenever the user changes a setting
+        if user_setting.id == 'max_distance':
+            self.max_distance = int(self.get_value_for_user_setting('max_distance'))
+            print "max_distance =", self.max_distance
+        elif user_setting.id == 'orbit_range':
+            self.orbit_range = int(self.get_value_for_user_setting('orbit_range'))
+            print "orbit_range =", self.orbit_range
+
+
     def __init__(self):
         self._state = State.STOPPED
 
@@ -82,6 +92,11 @@ class OrbitPoint(Skill):
 
         # Set once we have depth at the tap point.
         self.orbit_point = None
+
+        # Retrieve user settings into variables
+        self.max_distance = int(self.get_value_for_user_setting('max_distance'))
+        self.orbit_range = int(self.get_value_for_user_setting('orbit_range'))
+
 
     @property
     def state(self):
@@ -126,7 +141,7 @@ class OrbitPoint(Skill):
         # Check if we've exceeded the safety limit.
         # This prevents the vehicle from flying away if you tap on the sky.
         distance_traveled = np.linalg.norm(self.tap_start - api.vehicle.get_position())
-        if distance_traveled > self.get_value_for_user_setting('max_distance'):
+        if distance_traveled > self.max_distance:
             self.set_state(State.STOPPED)
             return
 
@@ -140,7 +155,7 @@ class OrbitPoint(Skill):
         # Configure the orbit
         api.focus.set_custom_subject(self.orbit_point)
         api.focus.set_azimuth_rate(0.5, weight=1.0)
-        api.focus.set_range(self.get_value_for_user_setting('orbit_range'), weight=0.5)
+        api.focus.set_range(self.orbit_range, weight=0.5)
         api.focus.set_keep_subject_in_sight(False)
 
         # Use AR to draw the point
